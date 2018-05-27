@@ -1,0 +1,11 @@
+Type                   Value                      PowerShell Output
+----      ------------------                     ----------- ---------------------
+String    Hello World                          "Hello World" Hello World
+Number                   123                             123                   123
+Null                    Null                           $Null  
+Boolean                 True                           $True True
+Boolean                False                          $False False
+DateTime  D 1963-10-07T21:47    [DateTime]"1963-10-07 21:47" 1963-10-07 9:47:00 PM
+Array               1, "Two"                     @(1, "Two") {1, two}
+HashTable    @{One=1; Two=2}                 @{One=1; Two=2} {One, Two}
+Object     O @{One=1; Two=2} [PSCustomObject]@{One=1; Two=2} @{One=1; Two=2}
