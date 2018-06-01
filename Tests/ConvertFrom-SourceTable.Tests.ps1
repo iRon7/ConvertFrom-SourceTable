@@ -203,7 +203,7 @@ Describe 'ConvertFrom-Table' {
 				----      ------------------                     ----------- ---------------------
 				String    Hello World                          "Hello World" Hello World
 				Number                   123                             123                   123
-				Null                    Null                           $Null  
+				Null                    Null                           $Null
 				Boolean                 True                           $True True
 				Boolean                False                          $False False
 				DateTime  D 1963-10-07T21:47    [DateTime]"1963-10-07 21:47" 1963-10-07 9:47:00 PM
