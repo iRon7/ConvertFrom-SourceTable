@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.0.32
+.VERSION 0.0.33
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -276,7 +276,7 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 											Try {Invoke-Expression $Value} 
 											Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
 										} ElseIf ($Column.Type) {
-											Try {Invoke-Expression "[$($Column.Type)]'$Value'"} 
+											Try {Invoke-Expression "[$($Column.Type)]`$Value"} 
 											Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
 										} Else {$Value}
 									} Else {$Value}
