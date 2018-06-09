@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.0.33
+.VERSION 0.0.40
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -164,48 +164,21 @@
 #>
 Function ConvertFrom-SourceTable {
 	[OutputType([Object[]])]Param (
-		[Parameter(ValueFromPipeLine = $True)][String[]]$Table,
+		[Parameter(ValueFromPipeLine = $True)][String[]]$Table, [Int[]]$ColumnStart,
 		[Char]$HorizontalRuler = '-', [Char]$VerticalRuler = '|', [Switch]$Markdown
 	)
 	Begin {
 		Function Null {$Null}; Function True {$True}; Function False {$False};	# Wrappers
 		Function O([HashTable]$Property) {New-Object PSObject -Property $Property}
 		Set-Alias D Get-Date
-		$LeftAligned = 1; $RightAligned = 2
 		$HRx = "\x{0:X2}" -f [Int]$HorizontalRuler; $VRx = "\x{0:X2}" -f [Int]$VerticalRuler
 		$RulerPattern = "^[$HRx$VRx\s]*$HRx[$HRx$VRx\s]*$"
-		$Header, $Ruler = $Null; $RowIndex = 0; $Self = @{Used = New-Object Bool[] 0}; $Columns = @(); $Property = @{}
-		Function IsLeftAligned($Line, $Column)  {$Line[$Column.Start] -Match '\S' -and $Line[$Column.End] -Match '\s'}
-		Function IsRightAligned($Line, $Column) {$Line[$Column.Start] -Match '\s' -and $Line[$Column.End] -Match '\S'} 
+		$Header, $Ruler = $Null; $RowIndex = 0; $Mask = New-Object Bool[] 0; $Columns = @(); $Property = @{}
 		Function Slice([Int]$Start, [Int]$End = [Int]::MaxValue, [Parameter(ValueFromPipeLine = $True, Mandatory = $True)][String]$String) {
 			If ($Start -lt 0) {$End += $Start; $Start = 0}
 			If ($End -gt 0 -and $Start -lt $String.Length) {
 				If ($End -lt $String.Length) {$String.Substring($Start, $End - $Start + 1)} Else {$String.Substring($Start)}
 			} Else {$Null}
-		}
-		Function Mask([String]$Line) {
-			For ($i = 0; $i -lt $Line.Length; $i++) {
-				If ($i -ge $Self.Used.Length) {$Self.Used += $Line[$i] -Match '\S'}
-				ElseIf (!$Self.Used[$i]) {$Self.Used[$i] = $Line[$i] -Match '\S'}
-			}
-			$Margin = $Line.Length - 1; $Align = $False
-			For ($i = $Columns.Length - 1; $i -ge 0; $i--) {$Column = @($Columns)[$i]
-				While ($Column.End -lt $Margin -and $Self.Used[$Column.End + 1]) {
-					If ($Align) {$Column.End = $Margin} Else {$Column.End++}
-				}
-				$Align = IsLeftAligned $Header $Column
-				If ($Align) {$Column.Aligned = $LeftAligned}
-				$Margin = $Column.Start - 2
-			}
-			$Margin = 0; $Align = $False
-			For ($i = 0; $i -lt $Columns.Length; $i++) {$Column = @($Columns)[$i]
-				While ($Column.Start -gt $Margin -and $Self.Used[$Column.Start - 1]) {
-					If ($Align) {$Column.Start = $Margin} Else {$Column.Start--}
-				}
-				$Align = IsRightAligned $Header $Column
-				If ($Align) {$Column.Aligned = $RightAligned}
-				$Margin = $Column.End + 2
-			}
 		}
 		Function TypeName([String]$TypeName) {
 			$Null = $TypeName.Trim() -Match '(\[(.*)\])?\s*(.*)'
@@ -228,61 +201,77 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 	Process {
 		$Table | ForEach-Object {
 			$Lines = $_ -Split '[\r\n]+'
-			$Head = 0; $Count = 0
+			$Skip = 0; $Count = 0
 			ForEach ($Line in $Lines) {
-				If ($Line -Match $RulerPattern) {$Ruler = $Line}
-				ElseIf ($Header) {
-					If (!$Columns) {
-						If (!$Ruler) {$Ruler = $Header}
-						If (!$MyInvocation.BoundParameters.Markdown.IsPresent) {$Markdown = $Header -Match $VRx}
-						If ($Markdown) {
-							$Margin = $Header -NotMatch "\w$VRx|$VRx\w"
-							$Columns = ForEach ($Match in ($Header | Select-String "[^$VRx]+\w[^$VRx]+" -AllMatches).Matches) {
-								$Column = @{Start = $Match.Index + $Margin; End = $Match.Index + $Match.Length - 1 - $Margin}
-								$Column.Type, $Column.Name = TypeName $Match.Value
-								If (IsLeftAligned $Header $Column) {$Column.Aligned = $LeftAligned}
-								ElseIf (IsRightAligned $Header $Column) {$Column.Aligned = $RightAligned}
-								If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
-								$Column
-							}
-						} Else {
-							$Previous = $Null
-							$Columns = ForEach ($Match in (&{If ($Ruler) {$Ruler} Else {$Header}} | Select-String "\S+" -AllMatches).Matches) {
-								$Column = @{Start = $Match.Index; End = $Match.Index + $Match.Length - 1}
-								$Column.Type, $Column.Name = TypeName ($Header | Slice $Column.Start $Column.End)
-								If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
-								If ($Previous) {$Previous.Next = $Column; $Column.Previous = $Previous}
-								$Column
-							}
-							If (!$Ruler) {Mask $Header}
-						}
-						$Head = $Count
-					}
-					If (!$Markdown) {Mask $Line}
-				} ElseIf ($Line.Trim()) {$Header = $Line}
+				If ($Line -Match $RulerPattern) {}
+				ElseIf ($Header) {If ($MarkDown) {Break}}
+				ElseIf ($Line.Trim()) {$Header = $Line; $Skip = $Count + 1}
+				For ($i = 0; $i -lt $Line.Length; $i++) {
+					If ($i -ge $Mask.Length) {$Mask += $Line[$i] -Match '\S'}
+					ElseIf (!$Mask[$i]) {$Mask[$i] = $Line[$i] -Match '\S'}
+				}
 				$Count++
 			}
-			ForEach ($Line in ($Lines | Select-Object -Skip $Head)) {
-				If ($Columns -and $Line.Trim()) {
-					If ($Line -NotMatch $RulerPattern) {
-						$RowIndex++
-						ForEach($Column in $Columns) {
-							$Field = $Line | Slice $Column.Start $Column.End
-							$Property[$Column.Name] =
-								If ($Field -is [String]) {
-									$Value = $Field.Trim()
-									If ($Value -gt "") {
-										If ($Field -Match '\S$' -and ($Field -Match '^\s' -or $Column.Aligned -eq $RightAligned)) {
-											Try {Invoke-Expression $Value} 
-											Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
-										} ElseIf ($Column.Type) {
-											Try {Invoke-Expression "[$($Column.Type)]`$Value"} 
-											Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
-										} Else {$Value}
-									} Else {$Value}
-								} Else {""}
+			If ($Header) {
+				If (!$Columns) {
+					If (!$MyInvocation.BoundParameters.Markdown.IsPresent) {$Markdown = $Header -Match $VRx}
+					If ($Markdown) {
+						$Margin = $Header -NotMatch "\w$VRx|$VRx\w"
+						$Columns = ForEach ($Match in ($Header | Select-String "[^$VRx]+\w[^$VRx]+" -AllMatches).Matches) {
+							$Column = @{Start = $Match.Index + $Margin; End = $Match.Index + $Match.Length - 1 - $Margin}
+							$Column.Type, $Column.Name = TypeName $Match.Value
+							If     ($Header[$Column.Start] -Match '\S' -and $Header[$Column.End] -Match '\s') {$Column.Aligned = $LeftAligned}
+							ElseIf ($Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S') {$Column.Aligned = $RightAligned}
+							If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
+							$Column
 						}
-						New-Object PSObject -Property $Property
+					} Else {
+						$MaskString = ($Mask | ForEach-Object {If ($_) {"X"} Else {" "}}) -Join ""
+						$Columns = ForEach ($Match in ($MaskString | Select-String "X+" -AllMatches).Matches) {
+							$Column = @{Start = $Match.Index; End = $Match.Index + $Match.Length - 1}
+							$Column.Type, $Column.Name = TypeName ($Header | Slice $Column.Start $Column.End)
+							If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
+							$Column
+						}
+					}
+				} ElseIf (!$MarkDown) {
+					$Margin = $Line.Length - 1; $Align = $False
+					For ($i = $Columns.Length - 1; $i -ge 0; $i--) {$Column = @($Columns)[$i]
+						While ($Column.End -lt $Margin -and $Mask[$Column.End + 1]) {
+							If ($Align) {$Column.End = $Margin} Else {$Column.End++}
+						}
+						$Margin = $Column.Start - 2
+					}
+					$Margin = 0; $Align = $False
+					For ($i = 0; $i -lt $Columns.Length; $i++) {$Column = @($Columns)[$i]
+						While ($Column.Start -gt $Margin -and $Mask[$Column.Start - 1]) {
+							If ($Align) {$Column.Start = $Margin} Else {$Column.Start--}
+						}
+						$Margin = $Column.End + 2
+					}
+				}
+				ForEach ($Line in ($Lines | Select-Object -Skip $Skip)) {
+					If ($Columns -and $Line.Trim()) {
+						If ($Line -NotMatch $RulerPattern) {
+							$RowIndex++
+							ForEach($Column in $Columns) {
+								$Field = $Line | Slice $Column.Start $Column.End
+								$Property[$Column.Name] =
+									If ($Field -is [String]) {
+										$Value = $Field.Trim()
+										If ($Value -gt "") {
+											If ($Field -Match '\S$' -and ($Field -Match '^\s' -or $Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S')) {
+												Try {Invoke-Expression $Value} 
+												Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
+											} ElseIf ($Column.Type) {
+												Try {Invoke-Expression "[$($Column.Type)]`$Value"} 
+												Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
+											} Else {$Value}
+										} Else {$Value}
+									} Else {""}
+							}
+							New-Object PSObject -Property $Property
+						}
 					}
 				}
 			}
