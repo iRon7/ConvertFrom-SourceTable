@@ -12,3 +12,4 @@
 0.0.31    2018-05-31 Ronald Bode Outside fields no longer return null but an empty string (same appearance)
 0.0.32    2018-05-31 Ronald Bode Nameless type columns will get the name of the type
 0.0.33    2018-06-03 Ronald Bode Prevent error when casting strings with embedded quotes
+0.0.40    2018-06-09 Ronald Bode Optimized code
