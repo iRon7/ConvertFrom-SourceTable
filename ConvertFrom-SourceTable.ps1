@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.0.40
+.VERSION 0.0.41
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -171,6 +171,7 @@ Function ConvertFrom-SourceTable {
 		Function Null {$Null}; Function True {$True}; Function False {$False};	# Wrappers
 		Function O([HashTable]$Property) {New-Object PSObject -Property $Property}
 		Set-Alias D Get-Date
+		$Alignment = @{Left = 1; Right = 2; Center =3}
 		$HRx = "\x{0:X2}" -f [Int]$HorizontalRuler; $VRx = "\x{0:X2}" -f [Int]$VerticalRuler
 		$RulerPattern = "^[$HRx$VRx\s]*$HRx[$HRx$VRx\s]*$"
 		$Header, $Ruler = $Null; $RowIndex = 0; $Mask = New-Object Bool[] 0; $Columns = @(); $Property = @{}
@@ -214,14 +215,14 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 			}
 			If ($Header) {
 				If (!$Columns) {
-					If (!$MyInvocation.BoundParameters.Markdown.IsPresent) {$Markdown = $Header -Match $VRx}
+					If (!$PSBoundParameters.Markdown.IsPresent) {$Markdown = $Header -Match $VRx}
 					If ($Markdown) {
 						$Margin = $Header -NotMatch "\w$VRx|$VRx\w"
 						$Columns = ForEach ($Match in ($Header | Select-String "[^$VRx]+\w[^$VRx]+" -AllMatches).Matches) {
 							$Column = @{Start = $Match.Index + $Margin; End = $Match.Index + $Match.Length - 1 - $Margin}
 							$Column.Type, $Column.Name = TypeName $Match.Value
-							If     ($Header[$Column.Start] -Match '\S' -and $Header[$Column.End] -Match '\s') {$Column.Aligned = $LeftAligned}
-							ElseIf ($Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S') {$Column.Aligned = $RightAligned}
+							If     ($Header[$Column.Start] -Match '\S' -and $Header[$Column.End] -Match '\s') {$Column.Alignment = $Alignment.Left}
+							ElseIf ($Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S') {$Column.Alignment = $Alignment.Right}
 							If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
 							$Column
 						}
@@ -229,24 +230,34 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 						$MaskString = ($Mask | ForEach-Object {If ($_) {"X"} Else {" "}}) -Join ""
 						$Columns = ForEach ($Match in ($MaskString | Select-String "X+" -AllMatches).Matches) {
 							$Column = @{Start = $Match.Index; End = $Match.Index + $Match.Length - 1}
-							$Column.Type, $Column.Name = TypeName ($Header | Slice $Column.Start $Column.End)
-							If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
-							$Column
+							$Name = ($Header | Slice $Column.Start $Column.End).Trim()
+							If ($Name) {
+								$Column.Type, $Column.Name = TypeName $Name
+								If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
+								If     ($Header[$Column.Start] -Match '\S' -and $Header[$Column.End] -Match '\s') {$Column.Alignment = $Alignment.Left}
+								ElseIf ($Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S') {$Column.Alignment = $Alignment.Right}
+								$Column
+							}
 						}
 					}
-				} ElseIf (!$MarkDown) {
+				}
+				If (!$MarkDown) {
 					$Margin = $Line.Length - 1; $Align = $False
-					For ($i = $Columns.Length - 1; $i -ge 0; $i--) {$Column = @($Columns)[$i]
+					For ($i = $Columns.Length - 1; $i -ge 0; $i--) {$Column = $Columns[$i]
 						While ($Column.End -lt $Margin -and $Mask[$Column.End + 1]) {
 							If ($Align) {$Column.End = $Margin} Else {$Column.End++}
+							$Column.Alignment = $Column.Alignment -bOr $Alignment.Left
 						}
+						$Align = $Column.Alignment -eq $Alignment.Left
 						$Margin = $Column.Start - 2
 					}
 					$Margin = 0; $Align = $False
-					For ($i = 0; $i -lt $Columns.Length; $i++) {$Column = @($Columns)[$i]
+					For ($i = 0; $i -lt $Columns.Length; $i++) {$Column = $Columns[$i]
 						While ($Column.Start -gt $Margin -and $Mask[$Column.Start - 1]) {
 							If ($Align) {$Column.Start = $Margin} Else {$Column.Start--}
+							$Column.Alignment = $Column.Alignment -bOr $Alignment.Right
 						}
+						$Align = $Column.Alignment -eq $Alignment.Right
 						$Margin = $Column.End + 2
 					}
 				}
@@ -260,7 +271,7 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 									If ($Field -is [String]) {
 										$Value = $Field.Trim()
 										If ($Value -gt "") {
-											If ($Field -Match '\S$' -and ($Field -Match '^\s' -or $Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S')) {
+											If ($Field -Match '\S$' -and ($Field -Match '^\s' -or $Column.Alignment -eq $Alignment.Right)) {
 												Try {Invoke-Expression $Value} 
 												Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
 											} ElseIf ($Column.Type) {
