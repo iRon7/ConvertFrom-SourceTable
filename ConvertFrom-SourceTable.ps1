@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.0.41
+.VERSION 0.0.42
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -174,7 +174,8 @@ Function ConvertFrom-SourceTable {
 		$Alignment = @{Left = 1; Right = 2; Center =3}
 		$HRx = "\x{0:X2}" -f [Int]$HorizontalRuler; $VRx = "\x{0:X2}" -f [Int]$VerticalRuler
 		$RulerPattern = "^[$HRx$VRx\s]*$HRx[$HRx$VRx\s]*$"
-		$Header, $Ruler = $Null; $RowIndex = 0; $Mask = New-Object Bool[] 0; $Columns = @(); $Property = @{}
+		$Header, $Ruler = $Null; $RowIndex = 0; $Mask = New-Object Bool[] 0; $Columns = @()
+		$Property = New-Object System.Collections.Specialized.OrderedDictionary				# Include support from PSv2
 		Function Slice([Int]$Start, [Int]$End = [Int]::MaxValue, [Parameter(ValueFromPipeLine = $True, Mandatory = $True)][String]$String) {
 			If ($Start -lt 0) {$End += $Start; $Start = 0}
 			If ($End -gt 0 -and $Start -lt $String.Length) {
@@ -218,17 +219,17 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 					If (!$PSBoundParameters.Markdown.IsPresent) {$Markdown = $Header -Match $VRx}
 					If ($Markdown) {
 						$Margin = $Header -NotMatch "\w$VRx|$VRx\w"
-						$Columns = ForEach ($Match in ($Header | Select-String "[^$VRx]+\w[^$VRx]+" -AllMatches).Matches) {
+						ForEach ($Match in ($Header | Select-String "[^$VRx]+\w[^$VRx]+" -AllMatches).Matches) {
 							$Column = @{Start = $Match.Index + $Margin; End = $Match.Index + $Match.Length - 1 - $Margin}
 							$Column.Type, $Column.Name = TypeName $Match.Value
 							If     ($Header[$Column.Start] -Match '\S' -and $Header[$Column.End] -Match '\s') {$Column.Alignment = $Alignment.Left}
 							ElseIf ($Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S') {$Column.Alignment = $Alignment.Right}
 							If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
-							$Column
+							$Columns += $Column; $Property.Add($Column.Name, $Null)
 						}
 					} Else {
 						$MaskString = ($Mask | ForEach-Object {If ($_) {"X"} Else {" "}}) -Join ""
-						$Columns = ForEach ($Match in ($MaskString | Select-String "X+" -AllMatches).Matches) {
+						ForEach ($Match in ($MaskString | Select-String "X+" -AllMatches).Matches) {
 							$Column = @{Start = $Match.Index; End = $Match.Index + $Match.Length - 1}
 							$Name = ($Header | Slice $Column.Start $Column.End).Trim()
 							If ($Name) {
@@ -236,7 +237,7 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 								If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
 								If     ($Header[$Column.Start] -Match '\S' -and $Header[$Column.End] -Match '\s') {$Column.Alignment = $Alignment.Left}
 								ElseIf ($Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S') {$Column.Alignment = $Alignment.Right}
-								$Column
+								$Columns += $Column; $Property.Add($Column.Name, $Null)
 							}
 						}
 					}
