@@ -13,4 +13,5 @@
 0.0.32    2018-05-31 Ronald Bode Nameless type columns will get the name of the type
 0.0.33    2018-06-03 Ronald Bode Prevent error when casting strings with embedded quotes
 0.0.40    2018-06-09 Ronald Bode Optimized code
-0.0.41    2018-07-06 Ronald Bode Resolved justified alignement bug
+0.0.41    2018-07-06 Ronald Bode Resolved justified alignment bug
+0.0.42    2018-07-11 Ronald Bode Retain the original property order
