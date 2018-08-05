@@ -1,5 +1,5 @@
 [Version] [DateTime] Author      Comments
---------- ---------- ----------- --------------------------------------------------------------------------------------------
+--------- ---------- ------      --------
 0.0.10    2018-05-03 Ronald Bode First design
 0.0.20    2018-05-09 Ronald Bode Pester ready version
 0.0.21    2018-05-09 Ronald Bode removed support for String[] types, like: {One, Two}, in string mode --> use expression mode
@@ -15,3 +15,4 @@
 0.0.40    2018-06-09 Ronald Bode Optimized code
 0.0.41    2018-07-06 Ronald Bode Resolved justified alignment bug
 0.0.42    2018-07-11 Ronald Bode Retain the original property order
+0.0.43    2018-08-05 Ronald Bode Liberated from Invoke-Expression
