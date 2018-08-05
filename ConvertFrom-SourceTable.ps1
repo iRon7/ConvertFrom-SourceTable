@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.0.42
+.VERSION 0.0.43
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -160,7 +160,7 @@
 		'
 
 	.LINK
-		https://github.com/iRon7/ConvertFrom-SourceTable
+		Online Version: https://github.com/iRon7/ConvertFrom-SourceTable
 #>
 Function ConvertFrom-SourceTable {
 	[OutputType([Object[]])]Param (
@@ -273,10 +273,10 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 										$Value = $Field.Trim()
 										If ($Value -gt "") {
 											If ($Field -Match '\S$' -and ($Field -Match '^\s' -or $Column.Alignment -eq $Alignment.Right)) {
-												Try {Invoke-Expression $Value} 
+												Try {&([Scriptblock]::Create($Value))} 
 												Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
 											} ElseIf ($Column.Type) {
-												Try {Invoke-Expression "[$($Column.Type)]`$Value"} 
+												Try {&([Scriptblock]::Create("[$($Column.Type)]`$Value"))}
 												Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
 											} Else {$Value}
 										} Else {$Value}
