@@ -1,19 +1,19 @@
 <#PSScriptInfo
-.VERSION 0.0.43
+.VERSION 0.0.44
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
-.COMPANYNAME 
-.COPYRIGHT 
+.COMPANYNAME
+.COPYRIGHT
 .TAGS Read Input Convert Resource Table Format MarkDown
 .LICENSEURI https://github.com/iRon7/ConvertFrom-SourceTable/LICENSE.txt
 .PROJECTURI https://github.com/iRon7/ConvertFrom-SourceTable
 .ICONURI https://raw.githubusercontent.com/iRon7/Join-Object/master/ConvertFrom-SourceTable.png
-.EXTERNALMODULEDEPENDENCIES 
-.REQUIREDSCRIPTS 
-.EXTERNALSCRIPTDEPENDENCIES 
+.EXTERNALMODULEDEPENDENCIES
+.REQUIREDSCRIPTS
+.EXTERNALSCRIPTDEPENDENCIES
 .RELEASENOTES
-.PRIVATEDATA 
+.PRIVATEDATA
 #>
 
 <#
@@ -27,32 +27,32 @@
 	rules:
 		Data that is left aligned will be parsed to the generic column type
 		which is a string by default.
-		
+
 		The generic column type can be set by prefixing the column name with
 		a standard (PowerShell) cast operator (a data type enclosed in
 		square brackets, e.g.: "[Int]ID")
-		
+
 		Data that is right aligned will be interpreted (using Invoke-Expression).
-	
+
 	Definitions:
 		The width of a source table column is outlined by header width, the
 		ruler width and the width of the process data. The process data for
 		single rows supplied through the pipeline (in comparison to a multi
 		line string) is limited from the first row up and till the current row.
-		
+
 		A right aligned field is outlined by its containing data which has at
 		least one leading white space character and no following white space
 		characters or at least one leading white space character and placed in a
 		right aligned column.
-		
+
 		A right aligned column is outlined by the header description which has
 		at least one leading white space character and no following white space
 		characters
-		
+
 		Note that the vertical header ruler of a source table is especially useful
 		for defining the boundaries of a column and how its data is aligned and
 		processed.
-		
+
 	Parameters
 		No is parameters is required.
 
@@ -67,7 +67,7 @@
 		(-Markdown:$False). By default, the input table is automatically recognized
 		by the vertical ruler.
 
-	.EXAMPLE 
+	.EXAMPLE
 
 		$Employee = ConvertFrom-SourceTable '
 		Department  Name    Country
@@ -80,7 +80,7 @@
 		Engineering Fischer Germany
 		'
 
-	.EXAMPLE 
+	.EXAMPLE
 
 		$Color = ConvertFrom-SourceTable '
 		Name       Value         RGB
@@ -109,7 +109,7 @@
 		---         ----    -----
 		{255, 0, 0} Red  16711680
 
-	.EXAMPLE 
+	.EXAMPLE
 
 		$Color = ConvertFrom-SourceTable '
 		|---------|----------|---------------|
@@ -134,7 +134,7 @@
 		|---------|----------|---------------|
 		'
 
-	.EXAMPLE 
+	.EXAMPLE
 
 		$DateType = ConvertFrom-SourceTable '
 		Type                   Value                      PowerShell Output
@@ -150,7 +150,7 @@
 		Object     O @{One=1; Two=2} [PSCustomObject]@{One=1; Two=2} @{One=1; Two=2}
 		'
 
-	.EXAMPLE 
+	.EXAMPLE
 
 		$Directory = ConvertFrom-SourceTable '
 		Mode    [DateTime]LastWriteTime         Length Name
@@ -176,7 +176,7 @@ Function ConvertFrom-SourceTable {
 		$RulerPattern = "^[$HRx$VRx\s]*$HRx[$HRx$VRx\s]*$"
 		$Header, $Ruler = $Null; $RowIndex = 0; $Mask = New-Object Bool[] 0; $Columns = @()
 		$Property = New-Object System.Collections.Specialized.OrderedDictionary				# Include support from PSv2
-		Function Slice([Int]$Start, [Int]$End = [Int]::MaxValue, [Parameter(ValueFromPipeLine = $True, Mandatory = $True)][String]$String) {
+		Function Slice([String]$String, [Int]$Start, [Int]$End = [Int]::MaxValue) {
 			If ($Start -lt 0) {$End += $Start; $Start = 0}
 			If ($End -gt 0 -and $Start -lt $String.Length) {
 				If ($End -lt $String.Length) {$String.Substring($Start, $End - $Start + 1)} Else {$String.Substring($Start)}
@@ -231,7 +231,7 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 						$MaskString = ($Mask | ForEach-Object {If ($_) {"X"} Else {" "}}) -Join ""
 						ForEach ($Match in ($MaskString | Select-String "X+" -AllMatches).Matches) {
 							$Column = @{Start = $Match.Index; End = $Match.Index + $Match.Length - 1}
-							$Name = ($Header | Slice $Column.Start $Column.End).Trim()
+							$Name = (Slice $Header $Column.Start $Column.End).Trim()
 							If ($Name) {
 								$Column.Type, $Column.Name = TypeName $Name
 								If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
@@ -267,13 +267,13 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 						If ($Line -NotMatch $RulerPattern) {
 							$RowIndex++
 							ForEach($Column in $Columns) {
-								$Field = $Line | Slice $Column.Start $Column.End
+								$Field = Slice $Line $Column.Start $Column.End
 								$Property[$Column.Name] =
 									If ($Field -is [String]) {
 										$Value = $Field.Trim()
 										If ($Value -gt "") {
 											If ($Field -Match '\S$' -and ($Field -Match '^\s' -or $Column.Alignment -eq $Alignment.Right)) {
-												Try {&([Scriptblock]::Create($Value))} 
+												Try {&([Scriptblock]::Create($Value))}
 												Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
 											} ElseIf ($Column.Type) {
 												Try {&([Scriptblock]::Create("[$($Column.Type)]`$Value"))}
@@ -290,3 +290,4 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 		}
 	}
 }; Set-Alias cfst ConvertFrom-SourceTable
+
