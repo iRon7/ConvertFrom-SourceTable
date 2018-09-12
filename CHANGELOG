@@ -16,3 +16,4 @@
 0.0.41    2018-07-06 Ronald Bode Resolved justified alignment bug
 0.0.42    2018-07-11 Ronald Bode Retain the original property order
 0.0.43    2018-08-05 Ronald Bode Liberated from Invoke-Expression
+0.0.44    2018-09-12 Ronald Bode Fixed Trim error in PSv2 when the script is invoked a second time
