@@ -2,8 +2,6 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
-. .\ConvertTo-Expression.ps1
-
 Function Should-BeObject {
 	Param (
 		[Parameter(Position=0)][Object[]]$b, [Parameter(ValueFromPipeLine = $True)][Object[]]$a
@@ -196,7 +194,7 @@ Describe 'ConvertFrom-Table' {
 			}
 		)
 
-		It 'Source table from pipeline' {
+		It 'Source table from String' {
 		
 			$Actual = ConvertFrom-SourceTable '
 				Type                   Value                      PowerShell Output
@@ -214,13 +212,13 @@ Describe 'ConvertFrom-Table' {
 			,$Actual | Should-BeObject $TypeObject
 		}
 
-		It 'Source table from stream' {
+		It 'Source table from pipeline' {
 		
 			$Actual = Get-Content .\SourceTable.txt | ConvertFrom-SourceTable
 			,$Actual | Should-BeObject $TypeObject
 		}
 
-		It 'Markup table from string' {
+		It 'Markdown table from string' {
 		
 			$Actual = ConvertFrom-SourceTable '
 				|-----------|--------------------|---------------------------------|-----------------------|
@@ -245,6 +243,228 @@ Describe 'ConvertFrom-Table' {
 			$Actual = Get-Content .\MarkdownTable.txt | ConvertFrom-SourceTable
 			,$Actual | Should-BeObject $TypeObject
 		}
+
+		It 'Markdown table from pipeline' {
+		
+			$Actual = Get-Content .\MarkdownTable.txt | ConvertFrom-SourceTable
+			,$Actual | Should-BeObject $TypeObject
+		}
+	}
+	
+	Context 'Alignment challenges' {
+	# If the column right of a left aligned column is also left aligned, the width will be justified to the right.
+	# Left aligned columns are treated as text.
+
+		It 'Left aligned by (otherwise) data indent' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				C1    C2
+				--    --
+				1  ,2 1  ,2
+			'
+			
+			$Actual.C1 | Should -Be '1  ,2'
+			$Actual.C2 | Should -Be '1  ,2'
+			
+		}
+		
+		It 'Left aligned by extended ruler' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				C1     C2
+				---    ---
+				11  ,2 11  ,2
+			'
+			
+			$Actual.C1 | Should -Be '11  ,2'
+			$Actual.C2 | Should -Be '11  ,2'
+			
+		}
+		
+		It 'Left aligned by indented ruler' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				C1    C2
+				-     -
+				11 ,2 11 ,2
+			'
+			
+			$Actual.C1 | Should -Be '11 ,2'
+			$Actual.C2 | Should -Be '11 ,2'
+			
+		}
+		
+		It 'Left aligned by extended data' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				C1     C2
+				--     --
+				111 ,2 111 ,2
+			'
+			
+			$Actual.C1 | Should -Be '111 ,2'
+			$Actual.C2 | Should -Be '111 ,2'
+			
+		}
+
+		It 'Left aligned (to be implemented)' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				C1    C2
+				--    --
+				11 ,2 11 ,2
+			'
+			
+			$Actual.C1 | Should -Be '11 ,2'
+			$Actual.C2 | Should -Be '11 ,2'
+			
+		}
+
+		It 'Right aligned by (otherwise) data indent' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				   C1    C2
+				   --    --
+				1,  2 1,  2
+			'
+			
+			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 2
+			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 2
+			
+		}
+		
+		It 'Right aligned by extended ruler' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				    C1     C2
+				   ---    ---
+				1,  22 1,  22
+			'
+			
+			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 22
+			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
+			
+		}
+		
+		It 'Right aligned by indented ruler' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				   C1    C2
+				    -     -
+				1, 22 1, 22
+			'
+			
+			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 22
+			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
+			
+		}
+		
+		It 'Right aligned by extended data' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				    C1     C2
+				    --     --
+				1, 222 1, 222
+			'
+			
+			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 222
+			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 222
+			
+		}
+
+		It 'Right aligned (to be implemented)' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				   C1    C2
+				   --    --
+				1, 22 1, 22
+			'
+			
+			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 22
+			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
+			
+		}
+
+		It 'Mixed alignment (determind by spaces)' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				   C1 C2
+				   -- --
+				1,  2 1  ,2
+			'
+			
+			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 2
+			$Actual.C2 | Should -Be '1  ,2'
+			
+		}
+
+		It 'Conflicting alignment' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				C1       C2
+				--       --
+				1  ,2 1,  2
+			'
+			
+			$Actual.C1 | Should -Be 1
+			$Actual.C2 | Should -Be '2'
+			
+		}
+
+		It 'Indefinable alignment' {
+			
+			$Actual = ConvertFrom-SourceTable '
+				C1       C2
+				--       --
+				11 ,2 1, 22
+			'
+			
+			$Actual.C1 | Should -Be 11
+			$Actual.C2 | Should -Be '22'
+			
+		}
+
+		It 'Real life alignment example' {
+		
+			$Actual = ConvertFrom-SourceTable '
+				Mod Ports Module-Type                        Model          Status
+				--- ----- -----------                        -----          ------
+				  1    48 2/4/8/10/16 Gbps Advance FC Module DS-X9448-768K9 ok
+				  2    48 2/4/8/10/16 Gbps Advance FC Module DS-X9448-768K9 ok
+				  3     0 Supervisor Module-3                DS-X97-SF1-K9  ha-standby
+				  4     0 Supervisor Module-3                DS-X97-SF1-K9  ha-standby
+			'
+			,$Actual | Should-BeObject @(
+					[PSCustomObject]@{
+							'Mod' = 1
+							'Ports' = 48
+							'Module-Type' = '2/4/8/10/16 Gbps Advance FC Module'
+							'Model' = 'DS-X9448-768K9'
+							'Status' = 'ok'
+					},
+					[PSCustomObject]@{
+							'Mod' = 2
+							'Ports' = 48
+							'Module-Type' = '2/4/8/10/16 Gbps Advance FC Module'
+							'Model' = 'DS-X9448-768K9'
+							'Status' = 'ok'
+					},
+					[PSCustomObject]@{
+							'Mod' = 3
+							'Ports' = 0
+							'Module-Type' = 'Supervisor Module-3'
+							'Model' = 'DS-X97-SF1-K9'
+							'Status' = 'ha-standby'
+					},
+					[PSCustomObject]@{
+							'Mod' = 4
+							'Ports' = 0
+							'Module-Type' = 'Supervisor Module-3'
+							'Model' = 'DS-X97-SF1-K9'
+							'Status' = 'ha-standby'
+					}
+			)
+		}
 	}
 		
 	Context 'Source table without header ruler' {
@@ -256,10 +476,23 @@ Describe 'ConvertFrom-Table' {
 				A        1
 				B        2
 			'
-			,$Actual | Should-BeObject @(
-				[PSCustomObject]@{'Name' = 'A'; 'Value' = 1},
-				[PSCustomObject]@{'Name' = 'B'; 'Value' = 2}
-			)
+			$Actual[0].Name | Should -Be "A"; $Actual[0].Value | Should -Be 1
+			$Actual[1].Name | Should -Be "B"; $Actual[1].Value | Should -Be 2
+		}
+	}
+
+	Context 'Source table with space in header name' {
+	
+		It 'Name- value' {
+		
+			$Actual = ConvertFrom-SourceTable '
+				Name Value
+				----------
+				A        1
+				B        2
+			'
+			$Actual[0].'Name Value' | Should -Be 'A        1'
+			$Actual[1].'Name Value' | Should -Be 'B        2'
 		}
 	}
 
@@ -372,3 +605,4 @@ Describe 'ConvertFrom-Table' {
 		}
 	}
 }
+
