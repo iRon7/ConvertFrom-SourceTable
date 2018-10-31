@@ -17,3 +17,5 @@
 0.0.42    2018-07-11 Ronald Bode Retain the original property order
 0.0.43    2018-08-05 Ronald Bode Liberated from Invoke-Expression
 0.0.44    2018-09-12 Ronald Bode Fixed Trim error in PSv2 when the script is invoked a second time
+0.0.50    2018-10-25 Ronald Bode Fixed Table Columns Being Truncated
+0.1.00    2018-10-31 Ronald Bode Improved algorithms
