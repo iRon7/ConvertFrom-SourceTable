@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.0.44
+.VERSION 0.1.00
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -162,20 +162,33 @@
 	.LINK
 		Online Version: https://github.com/iRon7/ConvertFrom-SourceTable
 #>
+[CmdletBinding()]Param()
 Function ConvertFrom-SourceTable {
-	[OutputType([Object[]])]Param (
-		[Parameter(ValueFromPipeLine = $True)][String[]]$Table, [Int[]]$ColumnStart,
+	[CmdletBinding()][OutputType([Object[]])]Param (
+		[Parameter(ValueFromPipeLine = $True)][String[]]$Table,
 		[Char]$HorizontalRuler = '-', [Char]$VerticalRuler = '|', [Switch]$Markdown
 	)
 	Begin {
 		Function Null {$Null}; Function True {$True}; Function False {$False};	# Wrappers
 		Function O([HashTable]$Property) {New-Object PSObject -Property $Property}
 		Set-Alias D Get-Date
-		$Alignment = @{Left = 1; Right = 2; Center =3}
+		$Align = @{Left = 1; Right = 2; Center =3}
 		$HRx = "\x{0:X2}" -f [Int]$HorizontalRuler; $VRx = "\x{0:X2}" -f [Int]$VerticalRuler
 		$RulerPattern = "^[$HRx$VRx\s]*$HRx[$HRx$VRx\s]*$"
-		$Header, $Ruler = $Null; $RowIndex = 0; $Mask = New-Object Bool[] 0; $Columns = @()
+		$Ruler, $Mask, $Skip = $Null; $IsData = $False; $RowIndex = 0; $Columns = @()
 		$Property = New-Object System.Collections.Specialized.OrderedDictionary				# Include support from PSv2
+		Function Debug-Column {
+			If (!$MarkDown) {Write-Debug (($Mask | ForEach-Object {If ($_) {"$_"} Else {" "}}) -Join "")}
+			$Length = If ($MarkDown) {$Ruler.Length} Else {$Mask.Length}
+			$ColumnInfo = 1..$Length | ForEach-Object {" "}
+			For ($i = 0; $i -lt $Columns.Length; $i++) {$Column = $Columns[$i]
+				For ($c = $Column.Start; $c -le $Column.End; $c++) {$ColumnInfo[$c] = "-"}
+				$ColumnInfo[($Column.Start + $Column.End) / 2] = "$i"[-1]
+				If ($Column.Aligned -eq $Align.Right) {$ColumnInfo[$Column.Start] = "<"}
+				If ($Column.Aligned -eq $Align.Left)  {$ColumnInfo[$Column.End]   = ">"}
+			}
+			Write-Debug ($ColumnInfo -Join "")
+		}
 		Function Slice([String]$String, [Int]$Start, [Int]$End = [Int]::MaxValue) {
 			If ($Start -lt 0) {$End += $Start; $Start = 0}
 			If ($End -gt 0 -and $Start -lt $String.Length) {
@@ -203,27 +216,40 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 	Process {
 		$Table | ForEach-Object {
 			$Lines = $_ -Split '[\r\n]+'
-			$Skip = 0; $Count = 0
+			$Skip = 0
 			ForEach ($Line in $Lines) {
-				If ($Line -Match $RulerPattern) {}
-				ElseIf ($Header) {If ($MarkDown) {Break}}
-				ElseIf ($Line.Trim()) {$Header = $Line; $Skip = $Count + 1}
-				For ($i = 0; $i -lt $Line.Length; $i++) {
-					If ($i -ge $Mask.Length) {$Mask += $Line[$i] -Match '\S'}
-					ElseIf (!$Mask[$i]) {$Mask[$i] = $Line[$i] -Match '\S'}
+				If ($Line.Trim()) {
+					$IsHeader = $False; $IsRuler = $Line -Match $RulerPattern
+					If ($IsRuler) {}
+					ElseIf ($Header) {$IsData = $True}
+					Else {
+						$IsHeader = $True; $Header = $Line
+						If (!$Columns -and !$PSBoundParameters.Markdown.IsPresent) {$Markdown = $Header -Match $VRx}
+						If (!$MarkDown) {$Mask = New-Object Byte[] $Header.Length}	# Bit 2: Header and Ruler | Bit 1: Header and Ruler and Data | Bit 0: Header or Ruler or Data
+					}
+					If ($Null -ne $Mask) {
+						$Length = If ($Line.Length -gt $Mask.Length) {$Line.Length} Else {$Mask.Length}
+						For ($i = 0; $i -lt $Length; $i++) {
+							If ($i -ge $Mask.Length) {$Mask += 0}
+							If ($Line[$i] -Match '\S') {
+								If ($IsHeader) {$Mask[$i] = 7}
+								Else {$Mask[$i] = $Mask[$i] -bOr 1}
+							} ElseIf (!$IsHeader) {$Mask[$i] = $Mask[$i] -bAnd 5}
+						}
+					}
 				}
-				$Count++
+				If (!$IsData) {$Skip++}
 			}
+
 			If ($Header) {
 				If (!$Columns) {
-					If (!$PSBoundParameters.Markdown.IsPresent) {$Markdown = $Header -Match $VRx}
 					If ($Markdown) {
 						$Margin = $Header -NotMatch "\w$VRx|$VRx\w"
 						ForEach ($Match in ($Header | Select-String "[^$VRx]+\w[^$VRx]+" -AllMatches).Matches) {
 							$Column = @{Start = $Match.Index + $Margin; End = $Match.Index + $Match.Length - 1 - $Margin}
 							$Column.Type, $Column.Name = TypeName $Match.Value
-							If     ($Header[$Column.Start] -Match '\S' -and $Header[$Column.End] -Match '\s') {$Column.Alignment = $Alignment.Left}
-							ElseIf ($Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S') {$Column.Alignment = $Alignment.Right}
+							If     ($Header[$Column.Start] -Match '\S' -and $Header[$Column.End]   -NotMatch '\S') {$Column.Aligned = $Align.Left}
+							ElseIf ($Header[$Column.End]   -Match '\S' -and $Header[$Column.Start] -NotMatch '\S') {$Column.Aligned = $Align.Right}
 							If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
 							$Columns += $Column; $Property.Add($Column.Name, $Null)
 						}
@@ -231,48 +257,60 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 						$MaskString = ($Mask | ForEach-Object {If ($_) {"X"} Else {" "}}) -Join ""
 						ForEach ($Match in ($MaskString | Select-String "X+" -AllMatches).Matches) {
 							$Column = @{Start = $Match.Index; End = $Match.Index + $Match.Length - 1}
-							$Name = (Slice $Header $Column.Start $Column.End).Trim()
+							$Name = "$(Slice $Header $Column.Start $Column.End)".Trim()
 							If ($Name) {
 								$Column.Type, $Column.Name = TypeName $Name
 								If ($Column.Type) {$Column.Type = Try {[Type]$Column.Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
-								If     ($Header[$Column.Start] -Match '\S' -and $Header[$Column.End] -Match '\s') {$Column.Alignment = $Alignment.Left}
-								ElseIf ($Header[$Column.Start] -Match '\s' -and $Header[$Column.End] -Match '\S') {$Column.Alignment = $Alignment.Right}
 								$Columns += $Column; $Property.Add($Column.Name, $Null)
 							}
 						}
 					}
 				}
-				If (!$MarkDown) {
-					$Margin = $Line.Length - 1; $Align = $False
-					For ($i = $Columns.Length - 1; $i -ge 0; $i--) {$Column = $Columns[$i]
-						While ($Column.End -lt $Margin -and $Mask[$Column.End + 1]) {
-							If ($Align) {$Column.End = $Margin} Else {$Column.End++}
-							$Column.Alignment = $Column.Alignment -bOr $Alignment.Left
+
+				If ($Mask) {
+					For ($c = 0; $c -lt $Columns.Length; $c++) {$Column = $Columns[$c]
+
+						$NextRight = If ($c -lt $Columns.Length) {$Columns[$c + 1]}
+						$Margin = If ($NextRight) {$NextRight.Start - 2} Else {$Mask.Length - 1}
+						$Justify = If ($NextRight) {$NextRight.Aligned -eq $Align.Left} Else {$True}
+						If ($Column.Aligned -ne $Align.Right) {
+							For ($i = $Column.End + 1; $i -le $Margin; $i++) {If ($Mask[$i]) {$Column.End  = $i} ElseIf (!$Justify) {Break}}
 						}
-						$Align = $Column.Alignment -eq $Alignment.Left
-						$Margin = $Column.Start - 2
-					}
-					$Margin = 0; $Align = $False
-					For ($i = 0; $i -lt $Columns.Length; $i++) {$Column = $Columns[$i]
-						While ($Column.Start -gt $Margin -and $Mask[$Column.Start - 1]) {
-							If ($Align) {$Column.Start = $Margin} Else {$Column.Start--}
-							$Column.Alignment = $Column.Alignment -bOr $Alignment.Right
+
+						$NextLeft = If ($c -gt 0) {$Columns[$c - 1]}
+						$Margin = If ($NextLeft) {$NextLeft.End + 2} Else {0}
+						$Justify = If ($NextLeft) {$NextLeft.Aligned -eq $Align.Right} Else {$True}
+						If ($Column.Aligned -ne $Align.Left) {
+							For ($i = $Column.Start - 1; $i -ge $Margin; $i--) {If ($Mask[$i]) {$Column.Start = $i} ElseIf (!$Justify) {Break}}
 						}
-						$Align = $Column.Alignment -eq $Alignment.Right
-						$Margin = $Column.End + 2
+
+						If (!$Column.Aligned) {
+							$IsLeftAligned  = ($Mask[$Column.Start] -bAnd 4) -and !($Mask[$Column.end]   -bAnd 2)
+							$IsRightAligned = ($Mask[$Column.end]   -bAnd 4) -and !($Mask[$Column.Start] -bAnd 2)
+							If ($IsLeftAligned -ne $IsRightAligned) {$Column.Aligned = If ($IsLeftAligned) {$Align.Left} Else {$Align.Right}}
+							If ($Column.Aligned) {If ($c -gt 0) {$c = $c - 2}}
+						}
 					}
 				}
+
+				If ($DebugPreference -ne "SilentlyContinue" -and !$RowIndex) {Write-Debug ($Header -Replace "\s", " "); Debug-Column}
 				ForEach ($Line in ($Lines | Select-Object -Skip $Skip)) {
 					If ($Columns -and $Line.Trim()) {
 						If ($Line -NotMatch $RulerPattern) {
 							$RowIndex++
+							If ($DebugPreference -ne "SilentlyContinue") {Write-Debug ($Line -Replace "\s", " ")}
 							ForEach($Column in $Columns) {
 								$Field = Slice $Line $Column.Start $Column.End
 								$Property[$Column.Name] =
 									If ($Field -is [String]) {
 										$Value = $Field.Trim()
 										If ($Value -gt "") {
-											If ($Field -Match '\S$' -and ($Field -Match '^\s' -or $Column.Alignment -eq $Alignment.Right)) {
+											$IsLeftAligned  = ($Line[$Column.Start] -Match '\S')
+											$IsRightAligned = ($Line[$Column.End]   -Match '\S')
+											$Aligned = If ($IsLeftAligned -ne $IsRightAligned) {
+												 If ($IsLeftAligned) {$Align.Left} Else {$Align.Right}
+											} Else {$Column.Aligned}
+											If ($Aligned -eq $Align.Right) {
 												Try {&([Scriptblock]::Create($Value))}
 												Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
 											} ElseIf ($Column.Type) {
@@ -286,8 +324,8 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 						}
 					}
 				}
+				If ($DebugPreference -ne "SilentlyContinue" -and $RowIndex) {Debug-Column}
 			}
 		}
 	}
 }; Set-Alias cfst ConvertFrom-SourceTable
-
