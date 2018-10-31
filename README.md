@@ -9,34 +9,39 @@
 	rules:
 		Data that is left aligned will be parsed to the generic column type
 		which is a string by default.
-		
+
 		The generic column type can be set by prefixing the column name with
 		a standard (PowerShell) cast operator (a data type enclosed in
 		square brackets, e.g.: "[Int]ID")
-		
-		Data that is right aligned will be interpreted (using Invoke-Expression).
-	
+
+		Data that is right aligned will be interpreted.
+
 	Definitions:
-		The width of a source table column is outlined by header width, the
-		ruler width and the width of the process data. The process data for
-		single rows supplied through the pipeline (in comparison to a multi
-		line string) is limited from the first row up and till the current row.
-		
-		A right aligned field is outlined by its containing data which has at
-		least one leading white space character and no following white space
-		characters or at least one leading white space character and placed in a
-		right aligned column.
-		
-		A right aligned column is outlined by the header description which has
-		at least one leading white space character and no following white space
-		characters
-		
-		Note that the vertical header ruler of a source table is especially useful
-		for defining the boundaries of a column and how its data is aligned and
-		processed.
-		
-	Parameters
-		No is parameters is required.
+		The width of a source table column is outlined by the header width,
+		the ruler width and the width of the data.
+
+		Data alingment is defined by the first and last character or space
+		in field of the outlined column.
+
+		Column alingment (which is used for a default field alingment) is
+		defined by the first and last character or space of the header and
+		the ruler of the outlined column.
+
+	.PARAMETER InputObject
+		Specifies the source table strings to be converted to objects.
+		Enter a variable that contains the source table strings or type a
+		command or expression that gets the source table strings.
+		You can also pipe the source table strings to ConvertFrom-SourceTable.
+
+		Note that piped table data strings are intermediately processed and
+		released for the next cmdlet. In this mode, there is a higher
+		possibility that floating data can't be determined to be part of
+		a specific column (as there is no overview of the table data that
+		follows). To resolve this use the -Ruler parameter.
+
+	.PARAMETER Ruler
+		A string that helps to define character columns in occasions where the
+		table column margins are indefinable.
 
 	.PARAMETER HorizontalRuler
 		Defines the horizontal ruler character. The default is a hyphen ("-").
@@ -45,9 +50,9 @@
 		Defines the vertical ruler character. The default is a vertical line ("|").
 
 	.PARAMETER Markdown
-		Threats the input table as a markdown table (-Markdown) or a source table
-		(-Markdown:$False). By default, the input table is automatically recognized
-		by the vertical ruler.
+		Threats the input table as a markdown table (-Markdown) or a source
+		table (-Markdown:$False). By default, the input table is automatically
+		recognized by the vertical ruler.
 
 	.EXAMPLE 
 
