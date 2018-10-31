@@ -265,7 +265,6 @@ Describe 'ConvertFrom-Table' {
 			
 			$Actual.C1 | Should -Be '1  ,2'
 			$Actual.C2 | Should -Be '1  ,2'
-			
 		}
 		
 		It 'Left aligned by extended ruler' {
@@ -278,7 +277,6 @@ Describe 'ConvertFrom-Table' {
 			
 			$Actual.C1 | Should -Be '11  ,2'
 			$Actual.C2 | Should -Be '11  ,2'
-			
 		}
 		
 		It 'Left aligned by indented ruler' {
@@ -291,7 +289,6 @@ Describe 'ConvertFrom-Table' {
 			
 			$Actual.C1 | Should -Be '11 ,2'
 			$Actual.C2 | Should -Be '11 ,2'
-			
 		}
 		
 		It 'Left aligned by extended data' {
@@ -304,7 +301,6 @@ Describe 'ConvertFrom-Table' {
 			
 			$Actual.C1 | Should -Be '111 ,2'
 			$Actual.C2 | Should -Be '111 ,2'
-			
 		}
 
 		It 'Left aligned (to be implemented)' {
@@ -314,7 +310,6 @@ Describe 'ConvertFrom-Table' {
 				--    --
 				11 ,2 11 ,2
 			'
-			
 			$Actual.C1 | Should -Be '11 ,2'
 			$Actual.C2 | Should -Be '11 ,2'
 			
@@ -330,7 +325,6 @@ Describe 'ConvertFrom-Table' {
 			
 			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 2
 			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 2
-			
 		}
 		
 		It 'Right aligned by extended ruler' {
@@ -343,7 +337,6 @@ Describe 'ConvertFrom-Table' {
 			
 			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 22
 			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
-			
 		}
 		
 		It 'Right aligned by indented ruler' {
@@ -356,7 +349,6 @@ Describe 'ConvertFrom-Table' {
 			
 			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 22
 			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
-			
 		}
 		
 		It 'Right aligned by extended data' {
@@ -369,7 +361,6 @@ Describe 'ConvertFrom-Table' {
 			
 			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 222
 			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 222
-			
 		}
 
 		It 'Right aligned (to be implemented)' {
@@ -395,7 +386,6 @@ Describe 'ConvertFrom-Table' {
 			
 			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 2
 			$Actual.C2 | Should -Be '1  ,2'
-			
 		}
 
 		It 'Conflicting alignment' {
@@ -406,9 +396,8 @@ Describe 'ConvertFrom-Table' {
 				1  ,2 1,  2
 			'
 			
-			$Actual.C1 | Should -Be 1
-			$Actual.C2 | Should -Be '2'
-			
+			$Actual.C1 | Should -Be '1'
+			$Actual.C2 | Should -Be 2
 		}
 
 		It 'Indefinable alignment' {
@@ -419,9 +408,20 @@ Describe 'ConvertFrom-Table' {
 				11 ,2 1, 22
 			'
 			
-			$Actual.C1 | Should -Be 11
-			$Actual.C2 | Should -Be '22'
+			$Actual.C1 | Should -Be '11'
+			$Actual.C2 | Should -Be 22
+		}
+
+		It 'Fixing indefinable alignment with Ruler parameter' {
 			
+			$Actual = ConvertFrom-SourceTable -Ruler '    ----- -----' '
+				C1       C2
+				--       --
+				11 ,2 1, 22
+			'
+			
+			$Actual.C1 | Should -Be '11 ,2'
+			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
 		}
 
 		It 'Real life alignment example' {
@@ -605,4 +605,3 @@ Describe 'ConvertFrom-Table' {
 		}
 	}
 }
-
