@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.1.00
+.VERSION 0.1.1
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -32,29 +32,34 @@
 		a standard (PowerShell) cast operator (a data type enclosed in
 		square brackets, e.g.: "[Int]ID")
 
-		Data that is right aligned will be interpreted (using Invoke-Expression).
+		Data that is right aligned will be interpreted.
 
 	Definitions:
-		The width of a source table column is outlined by header width, the
-		ruler width and the width of the process data. The process data for
-		single rows supplied through the pipeline (in comparison to a multi
-		line string) is limited from the first row up and till the current row.
+		The width of a source table column is outlined by the header width,
+		the ruler width and the width of the data.
 
-		A right aligned field is outlined by its containing data which has at
-		least one leading white space character and no following white space
-		characters or at least one leading white space character and placed in a
-		right aligned column.
+		Data alingment is defined by the first and last character or space
+		in field of the outlined column.
 
-		A right aligned column is outlined by the header description which has
-		at least one leading white space character and no following white space
-		characters
+		Column alingment (which is used for a default field alingment) is
+		defined by the first and last character or space of the header and
+		the ruler of the outlined column.
 
-		Note that the vertical header ruler of a source table is especially useful
-		for defining the boundaries of a column and how its data is aligned and
-		processed.
+	.PARAMETER InputObject
+		Specifies the source table strings to be converted to objects.
+		Enter a variable that contains the source table strings or type a
+		command or expression that gets the source table strings.
+		You can also pipe the source table strings to ConvertFrom-SourceTable.
 
-	Parameters
-		No is parameters is required.
+		Note that piped table data strings are intermediately processed and
+		released for the next cmdlet. In this mode, there is a higher
+		possibility that floating data can't be determined to be part of
+		a specific column (as there is no overview of the table data that
+		follows). To resolve this use the -Ruler parameter.
+
+	.PARAMETER Ruler
+		A string that helps to define character columns in occasions where the
+		table column margins are indefinable.
 
 	.PARAMETER HorizontalRuler
 		Defines the horizontal ruler character. The default is a hyphen ("-").
@@ -63,9 +68,9 @@
 		Defines the vertical ruler character. The default is a vertical line ("|").
 
 	.PARAMETER Markdown
-		Threats the input table as a markdown table (-Markdown) or a source table
-		(-Markdown:$False). By default, the input table is automatically recognized
-		by the vertical ruler.
+		Threats the input table as a markdown table (-Markdown) or a source
+		table (-Markdown:$False). By default, the input table is automatically
+		recognized by the vertical ruler.
 
 	.EXAMPLE
 
@@ -165,17 +170,17 @@
 [CmdletBinding()]Param()
 Function ConvertFrom-SourceTable {
 	[CmdletBinding()][OutputType([Object[]])]Param (
-		[Parameter(ValueFromPipeLine = $True)][String[]]$Table,
+		[Parameter(ValueFromPipeLine = $True)][String[]]$InputObject, [String]$Ruler,
 		[Char]$HorizontalRuler = '-', [Char]$VerticalRuler = '|', [Switch]$Markdown
 	)
 	Begin {
-		Function Null {$Null}; Function True {$True}; Function False {$False};	# Wrappers
+		Function Null {$Null}; Function True {$True}; Function False {$False};				# Wrappers
 		Function O([HashTable]$Property) {New-Object PSObject -Property $Property}
 		Set-Alias D Get-Date
 		$Align = @{Left = 1; Right = 2; Center =3}
 		$HRx = "\x{0:X2}" -f [Int]$HorizontalRuler; $VRx = "\x{0:X2}" -f [Int]$VerticalRuler
 		$RulerPattern = "^[$HRx$VRx\s]*$HRx[$HRx$VRx\s]*$"
-		$Ruler, $Mask, $Skip = $Null; $IsData = $False; $RowIndex = 0; $Columns = @()
+		$Header, $Mask = $Null; $IsData = $False; $RowIndex = 0; $Columns = @()
 		$Property = New-Object System.Collections.Specialized.OrderedDictionary				# Include support from PSv2
 		Function Debug-Column {
 			If (!$MarkDown) {Write-Debug (($Mask | ForEach-Object {If ($_) {"$_"} Else {" "}}) -Join "")}
@@ -214,13 +219,14 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 		}
 	}
 	Process {
-		$Table | ForEach-Object {
+		$InputObject | ForEach-Object {
 			$Lines = $_ -Split '[\r\n]+'
+			If (!$RowIndex -and $Ruler) {$Lines += $Ruler -Replace '\S', $HorizontalRuler}
 			$Skip = 0
 			ForEach ($Line in $Lines) {
 				If ($Line.Trim()) {
-					$IsHeader = $False; $IsRuler = $Line -Match $RulerPattern
-					If ($IsRuler) {}
+					$IsHeader = $False
+					If ($Line -Match $RulerPattern) {}
 					ElseIf ($Header) {$IsData = $True}
 					Else {
 						$IsHeader = $True; $Header = $Line
