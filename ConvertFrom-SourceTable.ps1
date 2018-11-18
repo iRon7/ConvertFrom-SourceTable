@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.1.4
+.VERSION 0.2.0
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -137,7 +137,7 @@ Function ConvertFrom-SourceTable {
 		--------- -------------- ------      --------
 		0.0.10    2018-05-03     Ronald Bode First design
 		0.0.20    2018-05-09     Ronald Bode Pester ready version
-		0.0.21    2018-05-09     Ronald Bode removed support for String[] types, like: {One, Two}, in string mode --> use expression mode
+		0.0.21    2018-05-09     Ronald Bode removed support for String[] types
 		0.0.22    2018-05-24     Ronald Bode Better "right aligned" definition
 		0.0.23    2018-05-25     Ronald Bode Resolved single column bug
 		0.0.24    2018-05-26     Ronald Bode Treating markdown table input as an option
