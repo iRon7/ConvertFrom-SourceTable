@@ -1,8 +1,8 @@
 # ConvertFrom-SourceTable
-Converts a source table (format-table) or markdown table to objects.
+Converts a source table (`Format-Table`) or markdown table to objects.
 
-The ConvertFrom-SourceTable cmdlet creates objects from a fixed column
-source table (format-table) or markdown table. The ConvertFrom-SourceTable
+The `ConvertFrom-SourceTable` cmdlet creates objects from a fixed column
+source table (`Format-Table`) or markdown table. The `ConvertFrom-SourceTable`
 cmdlet supports most data types using the following formatting and alignment
 rules
 
