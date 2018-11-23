@@ -97,7 +97,7 @@ PS C:\> $Files = ConvertFrom-SourceTable -Literal '
 '
 ```
 ## Parameters
--`InputObject <String[]>`
+-`InputObject <String[]>`  
 Specifies the source table strings to be converted to objects.
 Enter a variable that contains the source table strings or type a
 command or expression that gets the source table strings.
@@ -109,7 +109,7 @@ possibility that floating data can't be determined to be part of
 a specific column (as there is no overview of the table data that
 follows). To resolve this use the `-Ruler` parameter.*
 
-`-Header <String>`
+`-Header <String>`  
 A string that defines the header line of an headless table. The header
 is used to define the (property) names, the size and alignment of the
 column, therefore it is key that the columns names are properly aligned
@@ -118,21 +118,21 @@ The `-Header` parameter might also include the ruler functionality by
 omitting any ruler. In this case, all the horizontal ruler characters
 will be replaced by spaces.
 
-`-Ruler <String>`
+`-Ruler <String>`  
 A string that replaces any ruler in the input table which helps to
 define character columns in occasions where the table column margins
 are indefinable.
 
-`-HorizontalRuler <Char>`
+`-HorizontalRuler <Char>`  
 Defines the horizontal ruler character. The default is a hyphen (`-`).
 
-`-VerticalRuler <Char>`
+`-VerticalRuler <Char>`  
 Defines the vertical ruler character. The default is a vertical line (`|`).
 
-`-Literal`
+`-Literal`  
 The -Literal parameter will prevent any right aligned data to be evaluated.
 
-`-Markdown`
+`-Markdown`  
 Threats the input table as a markdown table (`-Markdown`) or a source
 table (`-Markdown:$False`). By default, this parameter is automatically
 defined based on the existence of a vertical ruler character in the
