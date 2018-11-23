@@ -31,7 +31,7 @@ the ruler of the outlined column.
 ```powershell
 PS C:\> $Colors = ConvertFrom-SourceTable '
 	Name       Value         RGB
-	------- -------- -----------
+	----       -----         ---
 	Black   0x000000       0,0,0
 	White   0xFFFFFF 255,255,255
 	Red     0xFF0000     255,0,0
@@ -52,9 +52,9 @@ PS C:\> $Colors = ConvertFrom-SourceTable '
 
 PS C:\> $Colors | Where {$_.Name -eq "Red"}
 
-RGB         Name    Value
----         ----    -----
-{255, 0, 0} Red  16711680
+Name    Value RGB
+----    ----- ---
+Red  16711680 {255, 0, 0}
 ```
 
 ```powershell
