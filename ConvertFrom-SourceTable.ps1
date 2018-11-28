@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.2.0
+.VERSION 0.2.1
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -92,7 +92,7 @@ Function ConvertFrom-SourceTable {
 
 		$Colors = ConvertFrom-SourceTable '
 		Name       Value         RGB
-		------- -------- -----------
+		----       -----         ---
 		Black   0x000000       0,0,0
 		White   0xFFFFFF 255,255,255
 		Red     0xFF0000     255,0,0
@@ -113,10 +113,10 @@ Function ConvertFrom-SourceTable {
 
 		PS C:\> $Colors | Where {$_.Name -eq "Red"}
 
-		RGB         Name    Value
-		---         ----    -----
-		{255, 0, 0} Red  16711680
-
+		Name    Value RGB
+		----    ----- ---
+		Red  16711680 {255, 0, 0}
+		
 	.EXAMPLE
 
 		$Employees = ConvertFrom-SourceTable '
@@ -232,13 +232,13 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 			ForEach ($Line in $Lines) {
 				If ($Line.Trim()) {
 					If ($Line -Match $RulerPattern) {
-						If (!$Ruler) {$Ruler =$Line}
-						ElseIf ($Mask -and !$PSBoundParameters.Ruler.IsPresent) {Mask $Line}
+						If (!$Ruler) {$Ruler = $Line}
+						ElseIf ($Mask -and !$PSBoundParameters.ContainsKey('Ruler')) {Mask $Line}
 					}
 					ElseIf (!$Header) {$Header = $Line}
 					Else {	# it is data
 						If ($Header -and $Null -eq $Mask) {
-							If (!$PSBoundParameters.Markdown.IsPresent) {$Markdown = $Header -Match $VRx}
+							If (!$PSBoundParameters.ContainsKey('Markdown')) {$Markdown = $Header -Match $VRx}
 							If ($MarkDown) {$Mask = $False} Else {
 								If (!$Ruler) {
 									$Ruler = $Header -Replace '\S', $HorizontalRuler
