@@ -22,6 +22,8 @@
 0.1.1     2018-11-13     Ronald Bode Added -Ruler parameter to add alignment info
 0.1.2     2018-11-14     Ronald Bode Added -Header parameter to add header info
 0.1.3     2018-11-15     Ronald Bode Added -Literal parameter to prevent any evalutation
-0.1.3     2018-11-15     Ronald Bode A manual suppied ruler (-Ruler <string>) suppresses all embedded rulers 
-0.1.3     2018-11-16     Ronald Bode Improved performance avoiding regex MaskString
-0.1.4     2018-11-18     Ronald Bode Depleted PSCustomObject alias 'O' and DateTime alias 'D' wrappers
+0.1.4     2018-11-15     Ronald Bode A manual suppied ruler (-Ruler <string>) suppresses all embedded rulers 
+0.1.5     2018-11-16     Ronald Bode Improved performance avoiding regex MaskString
+0.1.6     2018-11-16     Ronald Bode Depleted PSCustomObject alias 'O' and DateTime alias 'D' wrappers
+0.2.0     2018-11-18     Ronald Bode Shortened example
+0.2.1     2018-11-28     Ronald Bode Corrected -Ruler and -Markdown PSBoundParameters check
