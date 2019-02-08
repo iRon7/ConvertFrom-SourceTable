@@ -1,5 +1,7 @@
 #Requires -Modules @{ModuleName="Pester"; ModuleVersion="4.4.0"}
 
+Set-StrictMode -Version 2
+
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
@@ -222,7 +224,7 @@ Describe 'ConvertFrom-Table' {
 
 		$Table = '
 			Name       Value         RGB
-			------- -------- -----------
+			----       -----         ---
 			Black   0x000000       0,0,0
 			White   0xFFFFFF 255,255,255
 			Red     0xFF0000     255,0,0
@@ -840,4 +842,3 @@ Describe 'ConvertFrom-Table' {
 		}
 	}
 }
-
