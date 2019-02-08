@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.2.1
+.VERSION 0.2.2
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -116,7 +116,7 @@ Function ConvertFrom-SourceTable {
 		Name    Value RGB
 		----    ----- ---
 		Red  16711680 {255, 0, 0}
-		
+
 	.EXAMPLE
 
 		$Employees = ConvertFrom-SourceTable '
@@ -166,8 +166,6 @@ Function ConvertFrom-SourceTable {
 	)
 	Begin {
 		Function Null {$Null}; Function True {$True}; Function False {$False};				# Wrappers
-		Function O([HashTable]$Property) {New-Object PSObject -Property $Property}
-		Set-Alias D Get-Date
 		$Align = @{Left = 1; Right = 2; Center =3}
 		$HRx = "\x{0:X2}" -f [Int]$HorizontalRuler; $VRx = "\x{0:X2}" -f [Int]$VerticalRuler
 		$RulerPattern = "^[$HRx$VRx\s]*$HRx[$HRx$VRx\s]*$"
@@ -269,7 +267,7 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 							$Columns += @{Name = $Name; Type = $Type; Start = $Start; End = $End; Aligned = $Aligned}
 							$Property.Add($Name, $Null)
 						}
-					} Else {
+					} ElseIf ($Mask) {
 						$c = $False; $Start = $Null
 						For ($i = 0; $i -le $Mask.Length; $i++) {
 							$x = $i -lt $Mask.Length -and $Mask[$i]
@@ -279,7 +277,7 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 								$Type, $Name = TypeName "$(Slice $Header $Start $End)".Trim()
 								If ($Name) {
 									If ($Type) {$Type = Try {[Type]$Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
-									$Columns += @{Name = $Name; Type = $Type; Start = $Start; End = $End}
+									$Columns += @{Name = $Name; Type = $Type; Start = $Start; End = $End; Aligned = $Null}
 									$Property.Add($Name, $Null)
 								}
 							}
