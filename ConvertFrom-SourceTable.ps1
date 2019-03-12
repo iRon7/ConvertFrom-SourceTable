@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.2.2
+.VERSION 0.2.3
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -197,7 +197,7 @@ Function ConvertFrom-SourceTable {
 		}
 		Function Slice([String]$String, [Int]$Start, [Int]$End = [Int]::MaxValue) {
 			If ($Start -lt 0) {$End += $Start; $Start = 0}
-			If ($End -gt 0 -and $Start -lt $String.Length) {
+			If ($End -ge 0 -and $Start -lt $String.Length) {
 				If ($End -lt $String.Length) {$String.Substring($Start, $End - $Start + 1)} Else {$String.Substring($Start)}
 			} Else {$Null}
 		}
@@ -268,11 +268,11 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 							$Property.Add($Name, $Null)
 						}
 					} ElseIf ($Mask) {
-						$c = $False; $Start = $Null
+						$InWord = $False; $Start = $Null
 						For ($i = 0; $i -le $Mask.Length; $i++) {
-							$x = $i -lt $Mask.Length -and $Mask[$i]
-							If ($x -and !$c) {$c = $True; $Start = $i}
-							ElseIf (!$x -and $c) {$c = $False
+							$Masked = $i -lt $Mask.Length -and $Mask[$i]
+							If ($Masked -and !$InWord) {$InWord = $True; $Start = $i}
+							ElseIf (!$Masked -and $InWord) {$InWord = $False
 								$End = $i - 1
 								$Type, $Name = TypeName "$(Slice $Header $Start $End)".Trim()
 								If ($Name) {
