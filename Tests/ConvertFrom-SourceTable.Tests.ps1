@@ -841,4 +841,30 @@ Describe 'ConvertFrom-Table' {
 			,$Actual | Should-BeObject $RGB
 		}
 	}
+
+	Context 'Resolved bugs' {
+	
+		It 'Single width column at position 0' {
+
+			$Actual = ConvertFrom-SourceTable '
+A B    XY   ZY  
+- -    --   --  
+1 val1 foo1 bar1
+2 val2 foo2 bar2
+3 val3 foo3 bar3
+4 val4 foo4 bar4
+5 val5 foo5 bar5
+6 val6 foo6 bar6'
+
+			,$Actual | Should-BeObject @(
+				[PSCustomObject]@{'A' = '1'; 'B' = 'val1'; 'XY' = 'foo1'; 'ZY' = 'bar1'},
+				[PSCustomObject]@{'A' = '2'; 'B' = 'val2'; 'XY' = 'foo2'; 'ZY' = 'bar2'},
+				[PSCustomObject]@{'A' = '3'; 'B' = 'val3'; 'XY' = 'foo3'; 'ZY' = 'bar3'},
+				[PSCustomObject]@{'A' = '4'; 'B' = 'val4'; 'XY' = 'foo4'; 'ZY' = 'bar4'},
+				[PSCustomObject]@{'A' = '5'; 'B' = 'val5'; 'XY' = 'foo5'; 'ZY' = 'bar5'},
+				[PSCustomObject]@{'A' = '6'; 'B' = 'val6'; 'XY' = 'foo6'; 'ZY' = 'bar6'}
+				)
+			
+		}
+	}
 }
