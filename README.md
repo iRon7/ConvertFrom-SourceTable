@@ -138,5 +138,14 @@ table (`-Markdown:$False`). By default, this parameter is automatically
 defined based on the existence of a vertical ruler character in the
 header.
 
+`-Floating`
+By default introductions in floating tables with a ruler that are not
+streamed through the pipeline are automatically skipped.  
+If the `-Floating` switch is provided for for a pipeline input, the
+streaming of objects will start at the ruler (streamed floating tables
+can't be rulerless).  
+If the floating is explicitly disabled (`-Floating:$False`), the header
+is presumed to be on the first line, even if the table is not streamed.
+
 ## Links
 Online Version: https://github.com/iRon7/ConvertFrom-SourceTable
