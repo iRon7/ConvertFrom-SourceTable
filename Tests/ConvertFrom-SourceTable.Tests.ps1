@@ -477,6 +477,75 @@ Describe 'ConvertFrom-Table' {
 	}
 	
 	
+	Context 'Floating table' {
+		$Table = '
+
+			Information
+			on the table
+			
+			Name  Value
+			----  -----
+			Black     0
+			White   255
+
+		'
+		Write-Host $Table
+	
+		It 'Raw table, floating: AUTO' {
+			$Actual = ConvertFrom-SourceTable $Table
+			,$Actual | Should-BeObject @(
+				[PSCustomObject]@{'Name' = 'Black'; 'Value' = 0}
+				[PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
+			)
+		}
+
+		It 'Raw table, floating: ON' {
+			$Actual = ConvertFrom-SourceTable -Floating $Table
+			,$Actual | Should-BeObject @(
+				[PSCustomObject]@{'Name' = 'Black'; 'Value' = 0}
+				[PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
+			)
+		}
+	
+		It 'Raw table, floating: OFF' {
+			$Actual = ConvertFrom-SourceTable -Floating:$False $Table
+			,$Actual | Should-BeObject @(
+				[PSCustomObject]@{'Information' = 'on the table'}
+				[PSCustomObject]@{'Information' = 'Name  Value'}
+				[PSCustomObject]@{'Information' = 'Black     0'}
+				[PSCustomObject]@{'Information' = 'White   255'}
+			)
+		}
+	
+		It 'Streamed table lines, floating: AUTO' {
+			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+			,$Actual | Should-BeObject @(
+				[PSCustomObject]@{'Information' = 'on the table'}
+				[PSCustomObject]@{'Information' = 'Name  Value'}
+				[PSCustomObject]@{'Information' = 'Black     0'}
+				[PSCustomObject]@{'Information' = 'White   255'}
+			)
+		}
+
+		It 'Streamed table lines, floating: ON' {
+			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Floating
+			,$Actual | Should-BeObject @(
+				[PSCustomObject]@{'Name' = 'Black'; 'Value' = 0}
+				[PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
+			)
+		}
+	
+		It 'Streamed table lines, floating: OFF' {
+			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Floating:$False
+			,$Actual | Should-BeObject @(
+				[PSCustomObject]@{'Information' = 'on the table'}
+				[PSCustomObject]@{'Information' = 'Name  Value'}
+				[PSCustomObject]@{'Information' = 'Black     0'}
+				[PSCustomObject]@{'Information' = 'White   255'}
+			)
+		}
+	}
+	
 	Context 'Alignment challenges' {
 	# If the column right of a left aligned column is also left aligned, the width will be justified to the right.
 	# Left aligned columns are treated as text.
