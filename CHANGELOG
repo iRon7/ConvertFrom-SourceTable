@@ -29,3 +29,5 @@
 0.2.1     2018-11-28     Ronald Bode Corrected -Ruler and -Markdown PSBoundParameters check
 0.2.2     2019-02-06     Ronald Bode Compliant with StrictMode -Version 2
 0.2.3     2019-03-13     Ronald Bode Resolved (Slice) bug: single width column at position 0, results in empty name
+0.2.4     2019-05-01     Ronald Bode Separate data provided via the pipeline from an array provided through a parameter
+0.2.5     2019-05-03     Ronald Bode Added -Floating feature
