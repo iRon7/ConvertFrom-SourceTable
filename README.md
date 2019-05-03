@@ -138,7 +138,7 @@ table (`-Markdown:$False`). By default, this parameter is automatically
 defined based on the existence of a vertical ruler character in the
 header.
 
-`-Floating`
+`-Floating`  
 By default introductions in floating tables with a ruler that are not
 streamed through the pipeline are automatically skipped.  
 If the `-Floating` switch is provided for for a pipeline input, the
