@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.2.6
+.VERSION 0.2.7
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -285,7 +285,7 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 				} Else {
 					If (!$Mask) {
 						Mask $Header, $Ruler
-						$Lines | Select-Object -Skip $Skip | Where-Object {$_} | Foreach-Object {Mask $_}
+						$Lines | Select-Object -Skip $Skip | Where-Object {$_.Trim()} | Foreach-Object {Mask $_}
 					}
 					$InWord = $False; $Start = $Null
 					For ($i = 0; $i -le $Mask.Length; $i++) {
@@ -303,7 +303,7 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 					}
 				}
 			}
-		} ElseIf ($Mask) {$Lines | Select-Object -Skip $Skip | Where-Object {$_} | Foreach-Object {Mask $_}}
+		} ElseIf ($Mask) {$Lines | Select-Object -Skip $Skip | Where-Object {$_.Trim()} | Foreach-Object {Mask $_}}
 		If ($Columns) {
 			If ($Mask) {
 				For ($c = 0; $c -lt $Columns.Length; $c++) {$Column = $Columns[$c]
