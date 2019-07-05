@@ -935,5 +935,55 @@ A B    XY   ZY
 				)
 			
 		}
+
+		It 'Fixed issue with here table without ruler with spaces in header' {
+
+			$Actual = ConvertFrom-SourceTable -Literal '
+ USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
+ a2270725-3                               13  Disc      2+00:17  7/2/2019 1:50 PM
+ a2232655-3                               14  Disc      4+09:54  7/1/2019 2:10 AM
+ a2129521-3                               30  Disc      2+04:50  7/1/2019 4:52 AM
+ a16991754-3                              49  Disc        22:51  7/1/2019 5:44 AM
+ p.vbr.1                                  58  Disc      4+20:19  6/25/2019 11:20 AM
+ a16990384-3                              59  Disc         1:43  6/27/2019 10:20 AM
+ a2169135-3                               68  Disc      3+00:50  7/2/2019 11:13 AM
+ a2289685-3                               79  Disc         6:40  7/2/2019 9:04 PM
+>a2310806-3            rdp-tcp#93         85  Active          .  7/1/2019 9:05 AM
+ a16991667-3                              98  Disc      3+00:31  6/26/2019 6:35 AM
+ a2064837-3                              107  Disc         8:32  7/3/2019 12:47 AM
+ a2282463-3                              108  Disc      2+01:51  7/3/2019 8:55 AM
+ a2292833-3                              116  Disc      1+21:30  7/3/2019 2:06 PM
+ a18005447-3                             126  Disc      8+20:09  6/26/2019 2:48 PM
+ a2185113-3                              135  Disc         9:19  6/26/2019 9:14 PM
+ a2067993-3                              139  Disc      1+03:58  7/4/2019 8:08 AM
+ a2101008-3                              140  Disc         5:10  7/3/2019 10:00 PM
+ a2256517-3                              141  Disc      1+03:32  7/4/2019 8:32 AM
+ a2340150-3                              142  Disc        12:35  7/4/2019 9:53 PM
+ a2076309-3                              143  Disc         3:37  7/5/2019 3:37 AM'
+
+			,$Actual | Should-BeObject @(
+				[PSCustomObject]@{'ID' = '13'; 'IDLE TIME' = '2+00:17'; 'LOGON TIME' = '7/2/2019 1:50 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2270725-3'},
+				[PSCustomObject]@{'ID' = '14'; 'IDLE TIME' = '4+09:54'; 'LOGON TIME' = '7/1/2019 2:10 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2232655-3'},
+				[PSCustomObject]@{'ID' = '30'; 'IDLE TIME' = '2+04:50'; 'LOGON TIME' = '7/1/2019 4:52 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2129521-3'},
+				[PSCustomObject]@{'ID' = '49'; 'IDLE TIME' = '22:51'; 'LOGON TIME' = '7/1/2019 5:44 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a16991754-3'},
+				[PSCustomObject]@{'ID' = '58'; 'IDLE TIME' = '4+20:19'; 'LOGON TIME' = '6/25/2019 11:20 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'p.vbr.1'},
+				[PSCustomObject]@{'ID' = '59'; 'IDLE TIME' = '1:43'; 'LOGON TIME' = '6/27/2019 10:20 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a16990384-3'},
+				[PSCustomObject]@{'ID' = '68'; 'IDLE TIME' = '3+00:50'; 'LOGON TIME' = '7/2/2019 11:13 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2169135-3'},
+				[PSCustomObject]@{'ID' = '79'; 'IDLE TIME' = '6:40'; 'LOGON TIME' = '7/2/2019 9:04 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2289685-3'},
+				[PSCustomObject]@{'ID' = '85'; 'IDLE TIME' = '.'; 'LOGON TIME' = '7/1/2019 9:05 AM'; 'SESSIONNAME' = 'rdp-tcp#93'; 'STATE' = 'Active'; 'USERNAME' = '>a2310806-3'},
+				[PSCustomObject]@{'ID' = '98'; 'IDLE TIME' = '3+00:31'; 'LOGON TIME' = '6/26/2019 6:35 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a16991667-3'},
+				[PSCustomObject]@{'ID' = '107'; 'IDLE TIME' = '8:32'; 'LOGON TIME' = '7/3/2019 12:47 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2064837-3'},
+				[PSCustomObject]@{'ID' = '108'; 'IDLE TIME' = '2+01:51'; 'LOGON TIME' = '7/3/2019 8:55 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2282463-3'},
+				[PSCustomObject]@{'ID' = '116'; 'IDLE TIME' = '1+21:30'; 'LOGON TIME' = '7/3/2019 2:06 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2292833-3'},
+				[PSCustomObject]@{'ID' = '126'; 'IDLE TIME' = '8+20:09'; 'LOGON TIME' = '6/26/2019 2:48 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a18005447-3'},
+				[PSCustomObject]@{'ID' = '135'; 'IDLE TIME' = '9:19'; 'LOGON TIME' = '6/26/2019 9:14 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2185113-3'},
+				[PSCustomObject]@{'ID' = '139'; 'IDLE TIME' = '1+03:58'; 'LOGON TIME' = '7/4/2019 8:08 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2067993-3'},
+				[PSCustomObject]@{'ID' = '140'; 'IDLE TIME' = '5:10'; 'LOGON TIME' = '7/3/2019 10:00 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2101008-3'},
+				[PSCustomObject]@{'ID' = '141'; 'IDLE TIME' = '1+03:32'; 'LOGON TIME' = '7/4/2019 8:32 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2256517-3'},
+				[PSCustomObject]@{'ID' = '142'; 'IDLE TIME' = '12:35'; 'LOGON TIME' = '7/4/2019 9:53 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2340150-3'},
+				[PSCustomObject]@{'ID' = '143'; 'IDLE TIME' = '3:37'; 'LOGON TIME' = '7/5/2019 3:37 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2076309-3'}
+				)
+		}
 	}
 }
+
