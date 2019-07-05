@@ -31,3 +31,5 @@
 0.2.3     2019-03-13     Ronald Bode Resolved (Slice) bug: single width column at position 0, results in empty name
 0.2.4     2019-05-01     Ronald Bode Separate data provided via the pipeline from an array provided through a parameter
 0.2.5     2019-05-03     Ronald Bode Added -Floating feature
+0.2.6     2019-07-05     Ronald Bode Fixed issue with here table without ruler with spaces in header
+0.2.7     2019-07-05     Ronald Bode Fixed bug were the last line contains white spaces and data is floating
