@@ -961,7 +961,7 @@ A B    XY   ZY
  a2340150-3                              142  Disc        12:35  7/4/2019 9:53 PM
  a2076309-3                              143  Disc         3:37  7/5/2019 3:37 AM'
 
-			,$Actual | Should-BeObject @(
+		,$Actual | Should-BeObject @(
 				[PSCustomObject]@{'ID' = '13'; 'IDLE TIME' = '2+00:17'; 'LOGON TIME' = '7/2/2019 1:50 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2270725-3'},
 				[PSCustomObject]@{'ID' = '14'; 'IDLE TIME' = '4+09:54'; 'LOGON TIME' = '7/1/2019 2:10 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2232655-3'},
 				[PSCustomObject]@{'ID' = '30'; 'IDLE TIME' = '2+04:50'; 'LOGON TIME' = '7/1/2019 4:52 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2129521-3'},
@@ -982,7 +982,24 @@ A B    XY   ZY
 				[PSCustomObject]@{'ID' = '141'; 'IDLE TIME' = '1+03:32'; 'LOGON TIME' = '7/4/2019 8:32 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2256517-3'},
 				[PSCustomObject]@{'ID' = '142'; 'IDLE TIME' = '12:35'; 'LOGON TIME' = '7/4/2019 9:53 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2340150-3'},
 				[PSCustomObject]@{'ID' = '143'; 'IDLE TIME' = '3:37'; 'LOGON TIME' = '7/5/2019 3:37 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2076309-3'}
-				)
+			)
+		}
+
+		It 'Fixed bug were the last line contains white spaces and data is floating' {
+
+			$Actual = ConvertFrom-SourceTable '
+				Department  Id     Name             Country            Age      ReportsTo
+				----------  --     ----             -------            ---      ---------
+				Engineering {2, 4} {Bauer, Duval}   {Germany, France}  {31, 21} {4, 5}
+				Sales       {3, 1} {Cook, Aerts}    {England, Belgium} {69, 40} {1, 5}
+				Engineering {6, 4} {Fischer, Duval} {Germany, France}  {29, 21} {4, 5}
+				'
+
+			,$Actual | Should-BeObject @(
+				[pscustomobject]@{'Age' = '{31, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{2, 4}'; 'Name' = '{Bauer, Duval}'; 'ReportsTo' = '{4, 5}'},
+				[pscustomobject]@{'Age' = '{69, 40}'; 'Country' = '{England, Belgium}'; 'Department' = 'Sales'; 'Id' = '{3, 1}'; 'Name' = '{Cook, Aerts}'; 'ReportsTo' = '{1, 5}'},
+				[pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
+			)
 		}
 	}
 }
