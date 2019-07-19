@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.2.7
+.VERSION 0.2.9
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a source table (format-table) or markdown table to objects
@@ -174,7 +174,8 @@ Function ConvertFrom-SourceTable {
 		[Char]$HorizontalRuler = '-', [Char]$VerticalRuler = '|', [Switch]$Literal, [Switch]$Markdown, [Switch]$Floating
 	)
 	Begin {
-		If (!$PSBoundParameters.ContainsKey('Floating')) {Remove-Variable 'Floating'; $Floating = $Null}	# Tristate ($True/$False/$Null)
+		If (!$PSBoundParameters.ContainsKey('Markdown')) {Remove-Variable 'Markdown'; $Markdown = $Null}	# Tristate ($True/$False/$Null)
+		If (!$PSBoundParameters.ContainsKey('Floating')) {Remove-Variable 'Floating'; $Floating = $Null}
 		Function Null {$Null}; Function True {$True}; Function False {$False};								# Wrappers
 		$Align = @{Left = 1; Right = 2; Center =3}
 		$HRx = "\x{0:X2}" -f [Int]$HorizontalRuler; $VRx = "\x{0:X2}" -f [Int]$VerticalRuler
@@ -217,18 +218,16 @@ Function ConvertFrom-SourceTable {
 			$Null = $TypeName.Trim() -Match '(\[(.*)\])?\s*(.*)'
 			$Matches[2], (&{If($Matches[3]) {$Matches[3]} Else {$Matches[2]}})
 		}
-		Function ErrorRecord($Row) {
-			$ErrorRecord = $_.Exception.ErrorRecord
-			$Exception = New-Object System.InvalidOperationException @"
-$($_.Exception.Message)
-At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"the header row"}})
-+ $($Row -Replace "[\s]", " ")
-+ $(" " * $Column.Start)$("~" * ($Column.End - $Column.Start + 1))
-"@
+		Function ErrorRecord($Line, $Start, $End, $Message) {
+			$Exception = New-Object System.InvalidOperationException "
+$Message
++ $($Line -Replace '[\s]', ' ')
++ $(' ' * $Start)$('~' * ($End - $Start + 1))
+"
 			New-Object Management.Automation.ErrorRecord $Exception,
-				$ErrorRecord.FullyQualifiedErrorId,
-				$ErrorRecord.CategoryInfo.Category,
-				$ErrorRecord.TargetObject
+				$_.Exception.ErrorRecord.FullyQualifiedErrorId,
+				$_.Exception.ErrorRecord.CategoryInfo.Category,
+				$_.Exception.ErrorRecord.TargetObject
 		}
 	}
 	Process {
@@ -261,14 +260,17 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 						$Header = $Lines[$First]
 						$Skip = $First + 1
 					}
-					$Ruler = $Header -Replace '\S', $HorizontalRuler
-					$Header = $Header -Replace $HRx, " "
+					If ($Null -eq $Markdown) {$Markdown = $Header -Match $VRx}
+					If (!$Markdown) {
+						$Ruler = $Header -Replace '\S', $HorizontalRuler
+						$Header = $Header -Replace $HRx, " "
+					}
 				} Else {
 					If (!$PSBoundParameters.ContainsKey('Header')) {$Header = $Lines[$Last]}
 				}
 			}
-			If ($Header -and $Ruler) {
-				If (!$PSBoundParameters.ContainsKey('Markdown')) {$Markdown = $Header -Match $VRx}
+			If ($Header -and ($Ruler -or $Markdown)) {
+				If ($Null -eq $Markdown) {$Markdown = $Header -Match $VRx}
 				If ($Markdown) {
 					$Matches = If ($Ruler) {($Ruler | Select-String "$HRx+" -AllMatches).Matches}
 						Else {($Header | Select-String "[^$VRx]+\w[^$VRx]+" -AllMatches).Matches}
@@ -278,7 +280,11 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 						$Type, $Name = TypeName "$(Slice -String $Header -Start $Start -End $End)".Trim()
 						$Aligned = If ($Header[$Start] -Match '\S' -and $Header[$End]   -NotMatch '\S') {$Align.Left}
 							   ElseIf ($Header[$End]   -Match '\S' -and $Header[$Start] -NotMatch '\S') {$Align.Right}
-						If ($Type) {$Type = Try {[Type]$Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
+						If ($Type) {$Type = Try {[Type]$Type} Catch {
+									Write-Error -ErrorRecord (ErrorRecord -Line $Header -Start $Start -End $End -Message (
+										"Unknown type {0} in header at column '{1}'" -f $Type, $Name
+									))
+								}}
 						$Columns += @{Name = $Name; Type = $Type; Start = $Start; End = $End; Aligned = $Aligned}
 						$Property.Add($Name, $Null)
 					}
@@ -295,7 +301,11 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 							$End = $i - 1
 							$Type, $Name = TypeName "$(Slice -String $Header -Start $Start -End $End)".Trim()
 							If ($Name) {
-								If ($Type) {$Type = Try {[Type]$Type} Catch{Write-Error -ErrorRecord (ErrorRecord $Header)}}
+								If ($Type) {$Type = Try {[Type]$Type} Catch {
+									Write-Error -ErrorRecord (ErrorRecord -Line $Header -Start $Start -End $End -Message (
+										"Unknown type {0} in header at column '{1}'" -f $Type, $Name
+									))
+								}}
 								$Columns += @{Name = $Name; Type = $Type; Start = $Start; End = $End; Aligned = $Null}
 								$Property.Add($Name, $Null)
 							}
@@ -350,10 +360,18 @@ At column '$($Column.Name)' in $(&{If($RowIndex) {"data row $RowIndex"} Else {"t
 										} Else {$Column.Aligned}
 										If ($Aligned -eq $Align.Right) {
 											Try {&([Scriptblock]::Create($Value))}
-											Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
+											Catch {$Value
+												Write-Error -ErrorRecord (ErrorRecord -Line $Line -Start $Column.Start -End $Column.End -Message (
+													"The expression '{0}' in row {1} at column '{2}' can't be evaluted. Check the syntax or use the -Literal switch." -f $Value, $RowIndex, $Column.Name
+												))
+											}
 										} ElseIf ($Column.Type) {
 											Try {&([Scriptblock]::Create("[$($Column.Type)]`$Value"))}
-											Catch {$Value; Write-Error -ErrorRecord (ErrorRecord $Line)}
+											Catch {$Value
+												Write-Error -ErrorRecord (ErrorRecord -Line $Line -Start $Column.Start -End $Column.End -Message (
+													"The value '{0}' in row {1} at column '{2}' can't be converted to type {1}." -f $Valuee, $RowIndex, $Column.Name, $Column.Type
+												))
+											}
 										} Else {$Value}
 									} Else {$Value}
 								} Else {""}
