@@ -936,7 +936,7 @@ A B    XY   ZY
 			
 		}
 
-		It 'Fixed issue with here table without ruler with spaces in header' {
+		It 'Here table without ruler with spaces in header' {
 
 			$Actual = ConvertFrom-SourceTable -Literal '
  USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
@@ -985,7 +985,7 @@ A B    XY   ZY
 			)
 		}
 
-		It 'Fixed bug were the last line contains white spaces and data is floating' {
+		It 'Last line contains white spaces and data is floating' {
 
 			$Actual = ConvertFrom-SourceTable '
 				Department  Id     Name             Country            Age      ReportsTo
@@ -1000,7 +1000,71 @@ A B    XY   ZY
 				[pscustomobject]@{'Age' = '{69, 40}'; 'Country' = '{England, Belgium}'; 'Department' = 'Sales'; 'Id' = '{3, 1}'; 'Name' = '{Cook, Aerts}'; 'ReportsTo' = '{1, 5}'},
 				[pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
 			)
+			
+			$Actual = ConvertFrom-SourceTable '
+				Department  Id     Name             Country            Age      ReportsTo
+
+				----------  --     ----             -------            ---      ---------
+
+				Engineering {2, 4} {Bauer, Duval}   {Germany, France}  {31, 21} {4, 5}
+
+				Sales       {3, 1} {Cook, Aerts}    {England, Belgium} {69, 40} {1, 5}
+
+				Engineering {6, 4} {Fischer, Duval} {Germany, France}  {29, 21} {4, 5}
+'
+
+			,$Actual | Should-BeObject @(
+				[pscustomobject]@{'Age' = '{31, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{2, 4}'; 'Name' = '{Bauer, Duval}'; 'ReportsTo' = '{4, 5}'},
+				[pscustomobject]@{'Age' = '{69, 40}'; 'Country' = '{England, Belgium}'; 'Department' = 'Sales'; 'Id' = '{3, 1}'; 'Name' = '{Cook, Aerts}'; 'ReportsTo' = '{1, 5}'},
+				[pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
+			)
+
+			$Actual = ConvertFrom-SourceTable '
+				Department  Id     Name             Country            Age      ReportsTo
+				
+				----------  --     ----             -------            ---      ---------
+				
+				Engineering {2, 4} {Bauer, Duval}   {Germany, France}  {31, 21} {4, 5}
+				
+				Sales       {3, 1} {Cook, Aerts}    {England, Belgium} {69, 40} {1, 5}
+				
+				Engineering {6, 4} {Fischer, Duval} {Germany, France}  {29, 21} {4, 5}
+				'
+
+			,$Actual | Should-BeObject @(
+				[pscustomobject]@{'Age' = '{31, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{2, 4}'; 'Name' = '{Bauer, Duval}'; 'ReportsTo' = '{4, 5}'},
+				[pscustomobject]@{'Age' = '{69, 40}'; 'Country' = '{England, Belgium}'; 'Department' = 'Sales'; 'Id' = '{3, 1}'; 'Name' = '{Cook, Aerts}'; 'ReportsTo' = '{1, 5}'},
+				[pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
+			)
+		}
+		
+		It 'Markdown table without ruler' {
+
+			$Table = '
+				date      |  abc |    A |  B |    C |    D |    E |  F |  G |
+				6/4/2019  | 6775 | 3059 |  4 | 2292 | 1328 |  764 |  0 |  0 |
+				6/4/2019  | 6910 | 3167 | 28 | 3568 | 1180 | 1348 |  0 |  0 |
+				6/4/2019  | 6749 | 3161 |  0 | 2180 | 2060 | 1440 |  0 | 28 |
+				6/5/2019  | 6738 | 3118 |  4 | 2736 | 1396 |  984 |  0 |  0 |
+				6/5/2019  | 6718 | 3130 | 12 | 3076 | 1008 |  452 |  0 |  4 |
+				6/5/2019  | 6894 | 3046 |  4 | 2284 | 1556 |  624 |  0 |  0 |
+				'
+			
+			$Object = @(
+				[pscustomobject]@{'A' = 3059; 'abc' = 6775; 'B' = 4; 'C' = 2292; 'D' = 1328; 'E' = 764; 'F' = 0; 'G' = 0; 'date' = '6/4/2019'},
+				[pscustomobject]@{'A' = 3167; 'abc' = 6910; 'B' = 28; 'C' = 3568; 'D' = 1180; 'E' = 1348; 'F' = 0; 'G' = 0; 'date' = '6/4/2019'},
+				[pscustomobject]@{'A' = 3161; 'abc' = 6749; 'B' = 0; 'C' = 2180; 'D' = 2060; 'E' = 1440; 'F' = 0; 'G' = 28; 'date' = '6/4/2019'},
+				[pscustomobject]@{'A' = 3118; 'abc' = 6738; 'B' = 4; 'C' = 2736; 'D' = 1396; 'E' = 984; 'F' = 0; 'G' = 0; 'date' = '6/5/2019'},
+				[pscustomobject]@{'A' = 3130; 'abc' = 6718; 'B' = 12; 'C' = 3076; 'D' = 1008; 'E' = 452; 'F' = 0; 'G' = 4; 'date' = '6/5/2019'},
+				[pscustomobject]@{'A' = 3046; 'abc' = 6894; 'B' = 4; 'C' = 2284; 'D' = 1556; 'E' = 624; 'F' = 0; 'G' = 0; 'date' = '6/5/2019'}
+			)
+			
+			$Actual =  ConvertFrom-SourceTable $Table
+			,$Actual | Should-BeObject $Object
+			
+			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+			,$Actual | Should-BeObject $Object
+
 		}
 	}
 }
-
