@@ -33,3 +33,5 @@
 0.2.5     2019-05-03     Ronald Bode Added -Floating feature
 0.2.6     2019-07-05     Ronald Bode Fixed issue with here table without ruler with spaces in header
 0.2.7     2019-07-05     Ronald Bode Fixed bug were the last line contains white spaces and data is floating
+0.2.8     2019-07-19     Ronald Bode Fixed issue were a markdown table has no outer borders
+0.2.9     2019-07-20     Ronald Bode Changed error handling
