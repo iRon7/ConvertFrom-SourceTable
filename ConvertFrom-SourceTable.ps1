@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.3.2
+.VERSION 0.3.3
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a fixed column table to objects.
