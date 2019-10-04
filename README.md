@@ -1,30 +1,31 @@
 # ConvertFrom-SourceTable
-Converts a source table (`Format-Table`) or markdown table to objects.
+Converts a fixed column table to objects.
 
 The `ConvertFrom-SourceTable` cmdlet creates objects from a fixed column
-source table (`Format-Table`) or markdown table. The `ConvertFrom-SourceTable`
-cmdlet supports most data types using the following formatting and alignment
-rules
+source table (`format-table`) possibly surrounded by horizontal and/or
+vertical rulers. The `ConvertFrom-SourceTable` cmdlet supports most data
+types using the following formatting and alignment rules:
 
 Data that is left aligned will be parsed to the generic column type
 which is a string by default.
 
-The generic column type can be set by prefixing the column name with
+Data that is right aligned will be evaluated.
+
+The default column type can be set by prefixing the column name with
 a standard (PowerShell) cast operator (a data type enclosed in
 square brackets, e.g.: `[Int]ID`)
-
-Data that is right aligned will be evaluated.
 
 ### Definitions
 The width of a source table column is outlined by the header width,
 the ruler width and the width of the data.
 
-Data alignment is defined by the first and last character or space
-in field of the outlined column.
+Column and Data alignment (none, left, right or justified) is defined
+by the existence of a character at the start or end of a column.
 
 Column alignment (which is used for a default field alignment) is
 defined by the first and last character or space of the header and
 the ruler of the outlined column.
+
 
 ## Examples
 
@@ -103,11 +104,12 @@ Enter a variable that contains the source table strings or type a
 command or expression that gets the source table strings.
 You can also pipe the source table strings to `ConvertFrom-SourceTable`.
 
-*Note that piped table data strings are intermediately processed and
+*Note that streamed table rows are intermediately processed and
 released for the next cmdlet. In this mode, there is a higher
-possibility that floating data can't be determined to be part of
-a specific column (as there is no overview of the table data that
-follows). To resolve this use the `-Ruler` parameter.*
+possibility that floating tables or column data cannot be determined
+to be part of a specific column (as there is no overview of the table
+data that follows). To resolve this, use one of the folowing ruler or
+header specific parameters.*
 
 `-Header <String>`  
 A string that defines the header line of an headless table. The header
@@ -123,29 +125,32 @@ A string that replaces any ruler in the input table which helps to
 define character columns in occasions where the table column margins
 are indefinable.
 
-`-HorizontalRuler <Char>`  
-Defines the horizontal ruler character. The default is a hyphen (`-`).
+`-HorizontalDash <Char>`  
+(Alias `-HDash`) defines the horizontal ruler character.
+By default, each streamed table row (or a total raw table) will be
+searched for a ruler existing out of horizontal dash characters (`-`),
+spaces and possible vertical dashes. If the ruler is found, the prior
+line is presumed to be the header. If the ruler is not found within
+the first (two) streamed data lines, the first line is presumed the
+header line.
+If `-HorizontalDash` explicitly defined, all (streamed) lines will be
+searched for a matching ruler.
+If `-HorizontalDash` is set to `$Null`, the first data line is presumed
+the header line (unless the `-VerticalDash` parameter is set).
 
-`-VerticalRuler <Char>`  
-Defines the vertical ruler character. The default is a vertical line (`|`).
+`-VerticalDash <Char>`  
+(Alias `-VDash`) defines the vertical ruler character.
+By default, each streamed table row (or a total raw table) will be
+searched for a header with vertical dash characters (`|`). If the
+header is not found within the first streamed data line, the first
+line is presumed the header line.
+If `-VerticalDash` explicitly defined, all (streamed) lines will be
+searched for a header with a vertical dash character.
+If `-VerticalDash` is set to `$Null`, the first data line is presumed
+the header line (unless the `-HorizontalDash` parameter is set).
 
 `-Literal`  
 The -Literal parameter will prevent any right aligned data to be evaluated.
-
-`-Markdown`  
-Threats the input table as a markdown table (`-Markdown`) or a source
-table (`-Markdown:$False`). By default, this parameter is automatically
-defined based on the existence of a vertical ruler character in the
-header.
-
-`-Floating`  
-By default introductions in floating tables with a ruler that are not
-streamed through the pipeline are automatically skipped.  
-If the `-Floating` switch is provided for for a pipeline input, the
-streaming of objects will start at the ruler (streamed floating tables
-can't be rulerless).  
-If the floating is explicitly disabled (`-Floating:$False`), the header
-is presumed to be on the first line, even if the table is not streamed.
 
 ## Links
 Online Version: https://github.com/iRon7/ConvertFrom-SourceTable
