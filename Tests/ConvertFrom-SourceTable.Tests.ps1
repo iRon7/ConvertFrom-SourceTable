@@ -1,1070 +1,258 @@
-#Requires -Modules @{ModuleName="Pester"; ModuleVersion="4.4.0"}
+<#PSScriptInfo
+.VERSION 3.2.14
+.GUID 5f167621-6abe-4153-a26c-f643e1716720
+.AUTHOR Ronald Bode (iRon)
+.DESCRIPTION Stringifys an object to a PowerShell expression (PSON, PowerShell Object Notation).
+.COMPANYNAME
+.COPYRIGHT
+.TAGS PSON PowerShell Object Notation expression Stringify
+.LICENSEURI https://github.com/iRon7/ConvertTo-Expression/LICENSE.txt
+.PROJECTURI https://github.com/iRon7/ConvertTo-Expression
+.ICONURI https://raw.githubusercontent.com/iRon7/ConvertTo-Expression/master/ConvertTo-Expression.png
+.EXTERNALMODULEDEPENDENCIES
+.REQUIREDSCRIPTS
+.EXTERNALSCRIPTDEPENDENCIES
+.RELEASENOTES
+.PRIVATEDATA
+#>
 
-Set-StrictMode -Version 2
+Function ConvertTo-Expression {
+<#
+	.SYNOPSIS
+		Serializes an object to a PowerShell expression.
 
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+	.DESCRIPTION
+		The ConvertTo-Expression cmdlet converts (serialize) an object to a
+		PowerShell expression. The object can be stored in a variable, file or
+		any other common storage for later use or to be ported to another
+		system.
 
-Function Should-BeObject {
-	Param (
-		[Parameter(Position=0)][Object[]]$b, [Parameter(ValueFromPipeLine = $True)][Object[]]$a
+		Converting back from an expression
+		An expression can be restored to an object by preceding it with an
+		ampersand (&):
+
+			$Object = &($Object | ConverTo-Expression)
+
+		An expression that is casted to a string can be restored to an
+		object using the native Invoke-Expression cmdlet:
+
+			$Object = Invoke-Expression [String]($Object | ConverTo-Expression)
+
+		An expression that is stored in a PowerShell (.ps1) file might also
+		be directly invoked by the PowerShell dot-sourcing technique, e.g.:
+
+			$Object | ConvertTo-Expression | Out-File .\Expression.ps1
+			$Object = . .\Expression.ps1
+
+	.INPUTS
+		Any. Each objects provided through the pipeline will converted to an
+		expression. To concatinate all piped objects in a single expression,
+		use the unary comma operator, e.g.: ,$Object | ConvertTo-Expression
+
+	.OUTPUTS
+		System.Management.Automation.ScriptBlock[]. ConvertTo-Expression
+		returns a PowerShell expression (ScriptBlock) for each input object.
+		A PowerShell expression default display output is a Sytem.String.
+
+	.PARAMETER InputObject
+		Specifies the objects to convert to a PowerShell expression. Enter a
+		variable that contains the objects, or type a command or expression
+		that gets the objects. You can also pipe one or more objects to
+		ConvertTo-Expression.
+
+	.PARAMETER Depth
+		Specifies how many levels of contained objects are included in the
+		PowerShell representation. The default value is 9.
+
+	.PARAMETER Expand
+		Specifies till what level the contained objects are expanded over
+		separate lines and indented according to the -Indentation and
+		-IndentChar parameters. The default value is equal to the -Depth value.
+
+		A negative value will remove redundant spaces and compress the
+		PowerShell expression to a single line (except for multi-line strings).
+
+		Xml documents and multi-line strings are embedded in a "here string"
+		and aligned to the left.
+
+	.PARAMETER Indentation
+		Specifies how many IndentChars to write for each level in the
+		hierarchy.
+
+	.PARAMETER IndentChar
+		Specifies which character to use for indenting.
+
+	.PARAMETER Strong
+		By default, the ConvertTo-Expression cmdlet will return a weakly typed
+		expression which is best for transfing objects between differend
+		PowerShell systems.
+		The -Strong parameter will strickly define value types and objects
+		in a way that they can still be read by same PowerShell system and
+		PowerShell system with the same configuration (installed modules etc.).
+
+	.PARAMETER Explore
+		In explore mode, all type prefixes are omitted in the output expression
+		(objects will cast to to hash tables). In case the -Strong parameter is
+		also supplied, all orginal (.Net) type names are shown.
+		The -Explore switch is usefull for exploring object hyrachies and data
+		type, not for saving and transfering objects.
+
+	.EXAMPLE
+
+		PS C:\> (Get-UICulture).Calendar | ConvertTo-Expression
+
+		[pscustomobject]@{
+			'AlgorithmType' = 1
+			'CalendarType' = 1
+			'Eras' = ,1
+			'IsReadOnly' = $False
+			'MaxSupportedDateTime' = [datetime]'9999-12-31T23:59:59.9999999'
+			'MinSupportedDateTime' = [datetime]'0001-01-01T00:00:00.0000000'
+			'TwoDigitYearMax' = 2029
+		}
+
+		PS C:\> (Get-UICulture).Calendar | ConvertTo-Expression -Strong
+
+		[pscustomobject]@{
+			'AlgorithmType' = [System.Globalization.CalendarAlgorithmType]'SolarCalendar'
+			'CalendarType' = [System.Globalization.GregorianCalendarTypes]'Localized'
+			'Eras' = [array][int]1
+			'IsReadOnly' = [bool]$False
+			'MaxSupportedDateTime' = [datetime]'9999-12-31T23:59:59.9999999'
+			'MinSupportedDateTime' = [datetime]'0001-01-01T00:00:00.0000000'
+			'TwoDigitYearMax' = [int]2029
+		}
+
+	.EXAMPLE
+
+		PS C:\>Get-Date | Select-Object -Property * | ConvertTo-Expression | Out-File .\Now.ps1
+
+		PS C:\>$Now = .\Now.ps1	# $Now = Get-Content .\Now.Ps1 -Raw | Invoke-Expression
+
+		PS C:\>$Now
+
+		Date        : 1963-10-07 12:00:00 AM
+		DateTime    : Monday, October 7, 1963 10:47:00 PM
+		Day         : 7
+		DayOfWeek   : Monday
+		DayOfYear   : 280
+		DisplayHint : DateTime
+		Hour        : 22
+		Kind        : Local
+		Millisecond : 0
+		Minute      : 22
+		Month       : 1
+		Second      : 0
+		Ticks       : 619388596200000000
+		TimeOfDay   : 22:47:00
+		Year        : 1963
+
+	.EXAMPLE
+
+		PS C:\>@{Account="User01";Domain="Domain01";Admin="True"} | ConvertTo-Expression -Expand -1	# Compress the PowerShell output
+
+		@{'Admin'='True';'Account'='User01';'Domain'='Domain01'}
+
+	.EXAMPLE
+
+		PS C:\>WinInitProcess = Get-Process WinInit | ConvertTo-Expression	# Convert the WinInit Process to a PowerShell expression
+
+	.EXAMPLE
+
+		PS C:\>Get-Host | ConvertTo-Expression -Depth 4	# Reveal complex object hierarchies
+
+	.LINK
+		https://www.powershellgallery.com/packages/ConvertFrom-Expression
+#>
+	[CmdletBinding()][OutputType([ScriptBlock])]Param (
+		[Parameter(ValueFromPipeLine = $True)][Alias('InputObject')]$Object, [Int]$Depth = 9, [Int]$Expand = $Depth,
+		[Int]$Indentation = 1, [String]$IndentChar = "`t", [Switch]$Strong, [Switch]$Explore, [Switch]$Concatenate,
+		[String]$NewLine = [System.Environment]::NewLine
 	)
-	$Property = ($a | Select-Object -First 1).PSObject.Properties | Select-Object -Expand Name
-	$Difference = Compare-Object $b $a -Property $Property
-	Try {"$($Difference | Select-Object -First 1)" | Should -BeNull} Catch {$PSCmdlet.WriteError($_)}
-}
-
-$SimpleObject = @(
-	[PSCustomObject]@{'Country' = 'Belgium'; 'Department' = 'Sales'; 'Name' = 'Aerts'},
-	[PSCustomObject]@{'Country' = 'Germany'; 'Department' = 'Engineering'; 'Name' = 'Bauer'},
-	[PSCustomObject]@{'Country' = 'England'; 'Department' = 'Sales'; 'Name' = 'Cook'},
-	[PSCustomObject]@{'Country' = 'France'; 'Department' = 'Engineering'; 'Name' = 'Duval'},
-	[PSCustomObject]@{'Country' = 'England'; 'Department' = 'Marketing'; 'Name' = 'Evans'},
-	[PSCustomObject]@{'Country' = 'Germany'; 'Department' = 'Engineering'; 'Name' = 'Fischer'}
-)
-
-$ColorObject = @(
-	[PSCustomObject]@{'Name' = 'Black';   'RGB' = @(0,0,0);       'Value' = 0},
-	[PSCustomObject]@{'Name' = 'White';   'RGB' = @(255,255,255); 'Value' = 16777215},
-	[PSCustomObject]@{'Name' = 'Red';     'RGB' = @(255,0,0);     'Value' = 16711680},
-	[PSCustomObject]@{'Name' = 'Lime';    'RGB' = @(0,255,0);     'Value' = 65280},
-	[PSCustomObject]@{'Name' = 'Blue';    'RGB' = @(0,0,255);     'Value' = 255},
-	[PSCustomObject]@{'Name' = 'Yellow';  'RGB' = @(255,255,0);   'Value' = 16776960},
-	[PSCustomObject]@{'Name' = 'Cyan';    'RGB' = @(0,255,255);   'Value' = 65535},
-	[PSCustomObject]@{'Name' = 'Magenta'; 'RGB' = @(255,0,255);   'Value' = 16711935},
-	[PSCustomObject]@{'Name' = 'Silver';  'RGB' = @(192,192,192); 'Value' = 12632256},
-	[PSCustomObject]@{'Name' = 'Gray';    'RGB' = @(128,128,128); 'Value' = 8421504},
-	[PSCustomObject]@{'Name' = 'Maroon';  'RGB' = @(128,0,0);     'Value' = 8388608},
-	[PSCustomObject]@{'Name' = 'Olive';   'RGB' = @(128,128,0);   'Value' = 8421376},
-	[PSCustomObject]@{'Name' = 'Green';   'RGB' = @(0,128,0);     'Value' = 32768},
-	[PSCustomObject]@{'Name' = 'Purple';  'RGB' = @(128,0,128);   'Value' = 8388736},
-	[PSCustomObject]@{'Name' = 'Teal';    'RGB' = @(0,128,128);   'Value' = 32896},
-	[PSCustomObject]@{'Name' = 'Navy';    'RGB' = @(0,0,128);     'Value' = 128}
-)
-
-$VersionObject = @(
-	[PSCustomObject]@{
-			'Author' = 'Ronald Bode'
-			'Comments' = 'First design'
-			'Date' = [datetime]'2018-05-03'
-			'Version' = [version]'0.0.10'
-	},
-	[PSCustomObject]@{
-			'Author' = 'Ronald Bode'
-			'Comments' = 'Pester ready version'
-			'Date' = [datetime]'2018-05-09'
-			'Version' = [version]'0.0.20'
-	},
-	[PSCustomObject]@{
-			'Author' = 'Ronald Bode'
-			'Comments' = 'removed support for String[] types'
-			'Date' = [datetime]'2018-05-09'
-			'Version' = [version]'0.0.21'
-	},
-	[PSCustomObject]@{
-			'Author' = 'Ronald Bode'
-			'Comments' = 'Better "right aligned" definition'
-			'Date' = [datetime]'2018-05-24'
-			'Version' = [version]'0.0.22'
-	},
-	[PSCustomObject]@{
-			'Author' = 'Ronald Bode'
-			'Comments' = 'Resolved single column bug'
-			'Date' = [datetime]'2018-05-25'
-			'Version' = [version]'0.0.23'
-	},
-	[PSCustomObject]@{
-			'Author' = 'Ronald Bode'
-			'Comments' = 'Treating markdown table input as an option'
-			'Date' = [datetime]'2018-05-26'
-			'Version' = [version]'0.0.24'
-	},
-	[PSCustomObject]@{
-			'Author' = 'Ronald Bode'
-			'Comments' = 'Resolved error due to blank top lines'
-			'Date' = [datetime]'2018-05-27'
-			'Version' = [version]'0.0.25'
-	}
-)
-
-$TypeObject = @(
-	[PSCustomObject]@{
-		'Output' = 'Hello World'
-		'PowerShell' = 'Hello World'
-		'Type' = 'String'
-		'Value' = 'Hello World'
-	},
-	[PSCustomObject]@{
-		'Output' = 123
-		'PowerShell' = 123
-		'Type' = 'Number'
-		'Value' = 123
-	},
-	[PSCustomObject]@{
-		'Output' = ''
-		'PowerShell' = $Null
-		'Type' = 'Null'
-		'Value' = $Null
-	},
-	[PSCustomObject]@{
-		'Output' = 'True'
-		'PowerShell' = $True
-		'Type' = 'Boolean'
-		'Value' = $True
-	},
-	[PSCustomObject]@{
-		'Output' = 'False'
-		'PowerShell' = $False
-		'Type' = 'Boolean'
-		'Value' = $False
-	},
-	[PSCustomObject]@{
-		'Output' = '1963-10-07 9:47:00 PM'
-		'PowerShell' = [DateTime]'1963-10-07T21:47:00.0000000'
-		'Type' = 'DateTime'
-		'Value' = [DateTime]'1963-10-07T21:47:00.0000000'
-	},
-	[PSCustomObject]@{
-		'Output' = '{1, two}'
-		'PowerShell' = @(1, 'Two')
-		'Type' = 'Array'
-		'Value' = @(1, 'Two')
-	},
-	[PSCustomObject]@{
-		'Output' = '{One, Two}'
-		'PowerShell' = @{'One' = 1; 'Two' = 2}
-		'Type' = 'HashTable'
-		'Value' = @{'One' = 1; 'Two' = 2}
-	},
-	[PSCustomObject]@{
-		'Output' = '@{One=1; Two=2}'
-		'PowerShell' = [PSCustomObject]@{'One' = 1; 'Two' = 2}
-		'Type' = 'Object'
-		'Value' = [PSCustomObject]@{'One' = 1; 'Two' = 2}
-	}
-)
-
-$DirObject = @(
-	[PSCustomObject]@{'LastWriteTime' = '11/16/2018   8:30 PM'; 'Length' = '';       'Mode' = 'd----l'; 'Name' = 'Archive'}
-	[PSCustomObject]@{'LastWriteTime' = '5/22/2018  12:05 PM';  'Length' = '(726)';  'Mode' = '-a---l'; 'Name' = 'Build-Expression.ps1'}
-	[PSCustomObject]@{'LastWriteTime' = '11/16/2018   7:38 PM'; 'Length' = '2143';   'Mode' = '-a---l'; 'Name' = 'CHANGELOG'}
-	[PSCustomObject]@{'LastWriteTime' = '11/17/2018  10:42 AM'; 'Length' = '14728';  'Mode' = '-a---l'; 'Name' = 'ConvertFrom-SourceTable.ps1'}
-	[PSCustomObject]@{'LastWriteTime' = '11/17/2018  11:04 AM'; 'Length' = '23909';  'Mode' = '-a---l'; 'Name' = 'ConvertFrom-SourceTable.Tests.ps1'}
-	[PSCustomObject]@{'LastWriteTime' = '8/4/2018  11:04 AM';   'Length' = '(6237)'; 'Mode' = '-a---l'; 'Name' = 'Import-SourceTable.ps1'}
-)
-
-Describe 'ConvertFrom-Table' {
-	
-	Context 'Simple string table' {
-	
-		$Table = '
-			Department  Name    Country
-			----------  ----    -------
-			Sales       Aerts   Belgium
-			Engineering Bauer   Germany
-			Sales       Cook    England
-			Engineering Duval   France
-			Marketing   Evans   England
-			Engineering Fischer Germany
-		'
-		Write-Host $Table
-
-		$Object = $SimpleObject
-
-		It 'Raw table as argument' {
-			$Actual = ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Raw table from pipeline' {
-			$Actual = $Table | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Streamed table lines from pipeline' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
+	Begin {
+		If (!$PSCmdlet.MyInvocation.ExpectingInput) {If ($Concatenate) {Write-Warning 'The concatenate switch only applies to pipeline input'} Else {$Concatenate = $True}}
+		$Tab = $IndentChar * $Indentation
+		Function Serialize($Object, $Iteration, $Indent) {
+			Function Quote ([String]$Item) {"'$($Item.Replace('''', ''''''))'"}
+			Function Here ([String]$Item) {If ($Item -Match '[\r\n]') {"@'$NewLine$Item$NewLine'@$NewLine"} Else {Quote $Item}}
+			Function Stringify ($Object, $Cast = $Type) {
+				$Explicit = $PSBoundParameters.ContainsKey('Cast')
+				Function Prefix {If ($Explore) {If ($Strong) {"[$Type]"}} ElseIf ($Strong -or $Explicit) {If ($Cast) {"[$Cast]"}}}
+				Function Iterate($Object, [Switch]$ListItem, [Switch]$Level) {
+					If ($Iteration -lt $Depth) {Serialize $Object -Iteration ($Iteration + 1) -Indent ($Indent + 1 - [Int][Bool]$Level)} Else {"'...'"}
+				}
+				If ($Object -is [String]) {(Prefix) + $Object} Else {
+					$List, $Properties = $Null; $Methods = $Object.PSObject.Methods.Name
+					If ($Methods -Contains 'GetEnumerator') {
+						If ($Methods -Contains 'get_Keys' -and $Methods -Contains 'get_Values') {
+							$List = [Ordered]@{}; ForEach ($Key in $Object.get_Keys()) {$List[(Quote $Key)] = Iterate $Object[$Key]}
+						} Else {
+							$List = @(ForEach ($Item in $Object) {Iterate $Item -ListItem -Level:($Count -eq 1 -or ($Null -eq $Indent -and !$Explore -and !$Strong))})
+						}
+					} Else {
+						$Properties = $Object.PSObject.Properties | Where-Object {$_.MemberType -eq 'Property'}
+						If (!$Properties) {$Properties = $Object.PSObject.Properties | Where-Object {$_.MemberType-eq 'NoteProperty'}}
+						If ($Properties) {$List = [Ordered]@{}; ForEach ($Property in $Properties) {$List[(Quote $Property.Name)] = Iterate $Property.Value}}
+					}
+					If ($List -is [Array]) {
+						If (!$Explicit) {$Cast = 'array'}
+						If (!$List.Count) {(Prefix) + '@()'}
+						ElseIf ($List.Count -eq 1) {
+							If ($Strong) {(Prefix) + "$List"}
+							ElseIf ($ListItem) {"(,$List)"}
+							Else {",$List"}
+						}
+						ElseIf ($Indent -ge $Expand - 1) {
+							$Content = If ($Expand -ge 0) {$List -Join ', '} Else {$List -Join ','}
+							If ($ListItem -or $Strong) {(Prefix) + "($Content)"} Else {$Content}
+						}
+						ElseIf ($Null -eq $Indent -and !$Strong) {$List -Join ",$NewLine"}
+						Else {
+							$LineFeed = $NewLine + ($Tab * $Indent)
+							$Content = "$LineFeed$Tab" + ($List -Join ",$LineFeed$Tab")
+							If ($ListItem -or $Strong) {(Prefix) + "($Content$LineFeed)"} Else {$Content}
+						}
+					} ElseIf ($List -is [System.Collections.Specialized.OrderedDictionary]) {
+						If (!$Explicit) {If ($Properties) {$Explicit = $True; $Cast = 'pscustomobject'} Else {$Cast = 'hashtable'}}
+						If (!$List.Count) {(Prefix) + '@{}'}
+						ElseIf ($Expand -lt 0) {(Prefix) + '@{' + (@(ForEach ($Key in $List.get_Keys()) {"$Key=$($List.$Key)"}) -Join ';') + '}'}
+						ElseIf ($List.Count -eq 1 -or $Indent -ge $Expand - 1) {
+							(Prefix) + '@{' + (@(ForEach ($Key in $List.get_Keys()) {"$Key = $($List.$Key)"}) -Join '; ') + '}'
+						} Else {
+							$LineFeed = $NewLine + ($Tab * $Indent)
+							(Prefix) + "@{$LineFeed$Tab" + (@(ForEach ($Key in $List.get_Keys()) {
+								If (($List.$Key)[0] -NotMatch '[\S]') {"$Key =$($List.$Key)".TrimEnd()} Else {"$Key = $($List.$Key)".TrimEnd()}
+							}) -Join "$LineFeed$Tab") + "$LineFeed}"
+						}
+					}
+					Else {(Prefix) + ",$List"}
+				}
+			}
+			If ($Null -eq $Object) {"`$Null"} Else {
+				$Type = $Object.GetType()
+				If ($Object -is [Boolean]) {If ($Object) {Stringify '$True'} Else {Stringify '$False'}}
+				ElseIf ($Object -is [Char]) {Stringify "'$($Object)'" $Type}
+				ElseIf ($Type.IsPrimitive) {Stringify "$Object"}
+				ElseIf ($Object -is [String]) {Stringify (Here $Object)}
+				ElseIf ($Object -is [DateTime]) {Stringify "'$($Object.ToString('o'))'" $Type}
+				ElseIf ($Object -is [Version] -or $Type.Name -eq 'SemVer') {Stringify "'$Object'" $Type}
+				ElseIf ('semver' -as [type] -and $Object -is [semver]) {Stringify "'$Object'" 'semver'}
+				ElseIf ($Object -is [Enum]) {If ($Strong) {Stringify "'$Object'" $Type} Else {Stringify "$(0 + $Object)"}}
+				ElseIf ($Object -is [ScriptBlock]) {If ($Object -Match "\#.*?$") {Stringify "{$Object$NewLine}"} Else {Stringify "{$Object}"}}
+				ElseIf ($Object -is [RuntimeTypeHandle]) {Stringify "$($Object.Value)"}
+				ElseIf ($Object -is [Xml]) {
+					$SW = New-Object System.IO.StringWriter; $XW = New-Object System.Xml.XmlTextWriter $SW
+					$XW.Formatting = If ($Indent -lt $Expand - 1) {'Indented'} Else {'None'}
+					$XW.Indentation = $Indentation; $XW.IndentChar = $IndentChar; $Object.WriteContentTo($XW); Stringify (Here $SW) $Type}
+				ElseIf ($Object -is [System.Data.DataTable]) {Stringify $Object.Rows}
+				ElseIf ($Type.Name -eq "OrderedDictionary") {Stringify $Object ordered}
+				ElseIf ($Object -is [ValueType]) {Stringify "'$($Object)'" $Type}
+				Else {Stringify $Object}
+			}
 		}
 	}
-	
-	Context 'Simple markdown table' {
-	
-		$Table = '
-			| Department  | Name    | Country |
-			| ----------- | ------- | ------- |
-			| Sales       | Aerts   | Belgium |
-			| Engineering | Bauer   | Germany |
-			| Sales       | Cook    | England |
-			| Engineering | Duval   | France  |
-			| Marketing   | Evans   | England |
-			| Engineering | Fischer | Germany |
-		'
-		Write-Host $Table
-
-		$Object = $SimpleObject
-
-		It 'Raw table as argument' {
-			$Actual = ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Raw table from pipeline' {
-			$Actual = $Table | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Streamed table lines from pipeline' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
+	Process {
+		$Expression = (Serialize $Object).TrimEnd()
+		Try {[ScriptBlock]::Create($Expression)} Catch {$PSCmdlet.WriteError($_); $Expression}
 	}
-	
-	Context 'Color table with casted values' {
-
-		$Table = '
-			Name       Value         RGB
-			----       -----         ---
-			Black   0x000000       0,0,0
-			White   0xFFFFFF 255,255,255
-			Red     0xFF0000     255,0,0
-			Lime    0x00FF00     0,255,0
-			Blue    0x0000FF     0,0,255
-			Yellow  0xFFFF00   255,255,0
-			Cyan    0x00FFFF   0,255,255
-			Magenta 0xFF00FF   255,0,255
-			Silver  0xC0C0C0 192,192,192
-			Gray    0x808080 128,128,128
-			Maroon  0x800000     128,0,0
-			Olive   0x808000   128,128,0
-			Green   0x008000     0,128,0
-			Purple  0x800080   128,0,128
-			Teal    0x008080   0,128,128
-			Navy    0x000080     0,0,128
-		'
-		Write-Host $Table
-
-		$Object = $ColorObject
-
-		It 'Raw table as argument' {
-			$Actual = ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Raw table from pipeline' {
-			$Actual = $Table | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Streamed table lines from pipeline' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-	}
-	
-	Context 'Markdown color table with casted values' {
-		
-		$Table = '
-			|---------|----------|---------------|
-			| Name    |    Value |           RGB |
-			|---------|----------|---------------|
-			| Black   | 0x000000 |       0, 0, 0 |
-			| White   | 0xFFFFFF | 255, 255, 255 |
-			| Red     | 0xFF0000 |     255, 0, 0 |
-			| Lime    | 0x00FF00 |     0, 255, 0 |
-			| Blue    | 0x0000FF |     0, 0, 255 |
-			| Yellow  | 0xFFFF00 |   255, 255, 0 |
-			| Cyan    | 0x00FFFF |   0, 255, 255 |
-			| Magenta | 0xFF00FF |   255, 0, 255 |
-			| Silver  | 0xC0C0C0 | 192, 192, 192 |
-			| Gray    | 0x808080 | 128, 128, 128 |
-			| Maroon  | 0x800000 |     128, 0, 0 |
-			| Olive   | 0x808000 |   128, 128, 0 |
-			| Green   | 0x008000 |     0, 128, 0 |
-			| Purple  | 0x800080 |   128, 0, 128 |
-			| Teal    | 0x008080 |   0, 128, 128 |
-			| Navy    | 0x000080 |     0, 0, 128 |
-			|---------|----------|---------------|
-		'
-		Write-Host $Table
-
-		$Object = $ColorObject
-
-		It 'Raw table as argument' {
-			$Actual = ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Raw table from pipeline' {
-			$Actual = $Table | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Streamed table lines from pipeline' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-	}
-
-	Context 'Version table with default column types' {
-
-		$Table = '
-			[Version] [DateTime]Date Author      Comments
-			--------- -------------- ------      --------
-			0.0.10    2018-05-03     Ronald Bode First design
-			0.0.20    2018-05-09     Ronald Bode Pester ready version
-			0.0.21    2018-05-09     Ronald Bode removed support for String[] types
-			0.0.22    2018-05-24     Ronald Bode Better "right aligned" definition
-			0.0.23    2018-05-25     Ronald Bode Resolved single column bug
-			0.0.24    2018-05-26     Ronald Bode Treating markdown table input as an option
-			0.0.25    2018-05-27     Ronald Bode Resolved error due to blank top lines
-		'
-		Write-Host $Table
-
-		$Object = $VersionObject
-
-		It 'Raw table as argument' {
-			$Actual = ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Raw table from pipeline' {
-			$Actual = $Table | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Streamed table lines from pipeline' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-	}
-	
-	Context '(Narrow) markfown version table with and default column types' {
-		
-		$Table = '
-			[Version]|[DateTime]Date|Author     |Comments
-			---------|--------------|-----------|------------------------------------------
-			0.0.10   |2018-05-03    |Ronald Bode|First design
-			0.0.20   |2018-05-09    |Ronald Bode|Pester ready version
-			0.0.21   |2018-05-09    |Ronald Bode|removed support for String[] types
-			0.0.22   |2018-05-24    |Ronald Bode|Better "right aligned" definition
-			0.0.23   |2018-05-25    |Ronald Bode|Resolved single column bug
-			0.0.24   |2018-05-26    |Ronald Bode|Treating markdown table input as an option
-			0.0.25   |2018-05-27    |Ronald Bode|Resolved error due to blank top lines
-		'
-		Write-Host $Table
-
-		$Object = $VersionObject
-
-		It 'Raw table as argument' {
-			$Actual = ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Raw table from pipeline' {
-			$Actual = $Table | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Streamed table lines from pipeline' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-	}
-
-	Context 'Type table with mixed value types' {
-
-		$Table = '
-			Type                                 Value                      PowerShell Output
-			----       -------------------------------                     ----------- ---------------------
-			String     Hello World                                       "Hello World" Hello World
-			Number                                 123                             123                   123
-			Null                                  Null                           $Null
-			Boolean                               True                           $True True
-			Boolean                              False                          $False False
-			DateTime      [DateTime]"1963-10-07T21:47"    [DateTime]"1963-10-07 21:47" 1963-10-07 9:47:00 PM
-			Array                             1, "Two"                     @(1, "Two") {1, two}
-			HashTable                  @{One=1; Two=2}                 @{One=1; Two=2} {One, Two}
-			Object     [PSCustomObject]@{One=1; Two=2} [PSCustomObject]@{One=1; Two=2} @{One=1; Two=2}
-		'
-		Write-Host $Table
-
-		$Object = $TypeObject
-
-		It 'Raw table as argument' {
-			$Actual = ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Raw table from pipeline' {
-			$Actual = $Table | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Streamed table lines from pipeline' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-	}
-
-	Context 'Markdown type table with mixed value types' {
-
-		$Table = '
-			|-----------|---------------------------------|---------------------------------|-----------------------|
-			| Type      |                           Value |                      PowerShell | Output                |
-			|-----------|---------------------------------|---------------------------------|-----------------------|
-			| String    | Hello World                     |                   "Hello World" | Hello World           |
-			| Number    |                             123 |                             123 |                   123 |
-			| Null      |                            Null |                           $Null |                       |
-			| Boolean   |                            True |                           $True | True                  |
-			| Boolean   |                           False |                          $False | False                 |
-			| DateTime  |    [DateTime]"1963-10-07 21:47" |    [DateTime]"1963-10-07 21:47" | 1963-10-07 9:47:00 PM |
-			| Array     |                        1, "Two" |                     @(1, "Two") | {1, two}              |
-			| HashTable |                 @{One=1; Two=2} |                 @{One=1; Two=2} | {One, Two}            |
-			| Object    | [PSCustomObject]@{One=1; Two=2} | [PSCustomObject]@{One=1; Two=2} | @{One=1; Two=2}       |
-			|-----------|---------------------------------|---------------------------------|-----------------------|
-		'
-		Write-Host $Table
-
-		$Object = $TypeObject
-
-		It 'Raw table as argument' {
-			$Actual = ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Raw table from pipeline' {
-			$Actual = $Table | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Streamed table lines from pipeline' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-		}
-	}
-
-	Context 'Literal directory list' {
-
-		$Table = '
-			Mode                LastWriteTime         Length Name
-			----                -------------         ------ ----
-			d----l       11/16/2018   8:30 PM                Archive
-			-a---l        5/22/2018  12:05 PM          (726) Build-Expression.ps1
-			-a---l       11/16/2018   7:38 PM           2143 CHANGELOG
-			-a---l       11/17/2018  10:42 AM          14728 ConvertFrom-SourceTable.ps1
-			-a---l       11/17/2018  11:04 AM          23909 ConvertFrom-SourceTable.Tests.ps1
-			-a---l         8/4/2018  11:04 AM         (6237) Import-SourceTable.ps1
-		'
-		Write-Host $Table
-
-		$Object = $DirObject
-
-		It 'Raw table as argument' {
-			$Actual = ConvertFrom-SourceTable -Literal $Table
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Raw table from pipeline' {
-			$Actual = $Table | ConvertFrom-SourceTable -Literal
-			,$Actual | Should-BeObject $Object
-		}
-
-		It 'Streamed table lines from pipeline' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Literal
-			,$Actual | Should-BeObject $Object
-		}
-	}
-	
-	
-	Context 'Floating table' {
-		$Table = '
-
-			Information
-			on the table
-			
-			Name  Value
-			----  -----
-			Black     0
-			White   255
-
-		'
-		Write-Host $Table
-	
-		It 'Raw table, floating: AUTO' {
-			$Actual = ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject @(
-				[PSCustomObject]@{'Name' = 'Black'; 'Value' = 0}
-				[PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
-			)
-		}
-
-		It 'Raw table, floating: ON' {
-			$Actual = ConvertFrom-SourceTable -Floating $Table
-			,$Actual | Should-BeObject @(
-				[PSCustomObject]@{'Name' = 'Black'; 'Value' = 0}
-				[PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
-			)
-		}
-	
-		It 'Raw table, floating: OFF' {
-			$Actual = ConvertFrom-SourceTable -Floating:$False $Table
-			,$Actual | Should-BeObject @(
-				[PSCustomObject]@{'Information' = 'on the table'}
-				[PSCustomObject]@{'Information' = 'Name  Value'}
-				[PSCustomObject]@{'Information' = 'Black     0'}
-				[PSCustomObject]@{'Information' = 'White   255'}
-			)
-		}
-	
-		It 'Streamed table lines, floating: AUTO' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject @(
-				[PSCustomObject]@{'Information' = 'on the table'}
-				[PSCustomObject]@{'Information' = 'Name  Value'}
-				[PSCustomObject]@{'Information' = 'Black     0'}
-				[PSCustomObject]@{'Information' = 'White   255'}
-			)
-		}
-
-		It 'Streamed table lines, floating: ON' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Floating
-			,$Actual | Should-BeObject @(
-				[PSCustomObject]@{'Name' = 'Black'; 'Value' = 0}
-				[PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
-			)
-		}
-	
-		It 'Streamed table lines, floating: OFF' {
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Floating:$False
-			,$Actual | Should-BeObject @(
-				[PSCustomObject]@{'Information' = 'on the table'}
-				[PSCustomObject]@{'Information' = 'Name  Value'}
-				[PSCustomObject]@{'Information' = 'Black     0'}
-				[PSCustomObject]@{'Information' = 'White   255'}
-			)
-		}
-	}
-	
-	Context 'Alignment challenges' {
-	# If the column right of a left aligned column is also left aligned, the width will be justified to the right.
-	# Left aligned columns are treated as text.
-
-		It 'Left aligned by (otherwise) data indent' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				C1    C2
-				--    --
-				1  ,2 1  ,2
-			'
-			
-			$Actual.C1 | Should -Be '1  ,2'
-			$Actual.C2 | Should -Be '1  ,2'
-		}
-		
-		It 'Left aligned by extended ruler' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				C1     C2
-				---    ---
-				11  ,2 11  ,2
-			'
-			
-			$Actual.C1 | Should -Be '11  ,2'
-			$Actual.C2 | Should -Be '11  ,2'
-		}
-		
-		It 'Left aligned by indented ruler' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				C1    C2
-				-     -
-				11 ,2 11 ,2
-			'
-			
-			$Actual.C1 | Should -Be '11 ,2'
-			$Actual.C2 | Should -Be '11 ,2'
-		}
-		
-		It 'Left aligned by extended data' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				C1     C2
-				--     --
-				111 ,2 111 ,2
-			'
-			
-			$Actual.C1 | Should -Be '111 ,2'
-			$Actual.C2 | Should -Be '111 ,2'
-		}
-
-		It 'Left aligned (to be implemented)' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				C1    C2
-				--    --
-				11 ,2 11 ,2
-			'
-			$Actual.C1 | Should -Be '11 ,2'
-			$Actual.C2 | Should -Be '11 ,2'
-			
-		}
-
-		It 'Right aligned by (otherwise) data indent' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				   C1    C2
-				   --    --
-				1,  2 1,  2
-			'
-			
-			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 2
-			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 2
-		}
-		
-		It 'Right aligned by extended ruler' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				    C1     C2
-				   ---    ---
-				1,  22 1,  22
-			'
-			
-			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 22
-			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
-		}
-		
-		It 'Right aligned by indented ruler' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				   C1    C2
-				    -     -
-				1, 22 1, 22
-			'
-			
-			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 22
-			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
-		}
-		
-		It 'Right aligned by extended data' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				    C1     C2
-				    --     --
-				1, 222 1, 222
-			'
-			
-			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 222
-			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 222
-		}
-
-		It 'Right aligned (to be implemented)' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				   C1    C2
-				   --    --
-				1, 22 1, 22
-			'
-			
-			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 22
-			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
-			
-		}
-
-		It 'Mixed alignment (determind by spaces)' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				   C1 C2
-				   -- --
-				1,  2 1  ,2
-			'
-			
-			$Actual.C1[0] | Should -Be 1; $Actual.C1[1] | Should -Be 2
-			$Actual.C2 | Should -Be '1  ,2'
-		}
-
-		It 'Conflicting alignment' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				C1       C2
-				--       --
-				1  ,2 1,  2
-			'
-			
-			$Actual.C1 | Should -Be '1'
-			$Actual.C2 | Should -Be 2
-		}
-
-		It 'Indefinable alignment' {
-			
-			$Actual = ConvertFrom-SourceTable '
-				C1       C2
-				--       --
-				11 ,2 1, 22
-			'
-			
-			$Actual.C1 | Should -Be '11'
-			$Actual.C2 | Should -Be 22
-		}
-
-		It 'Fixing indefinable alignment with ruler parameter' {
-			
-			$Actual = ConvertFrom-SourceTable -Ruler '    ----- -----' '
-				C1       C2
-				--       --
-				11 ,2 1, 22
-			'
-			
-			$Actual.C1 | Should -Be '11 ,2'
-			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
-		}
-		
-		It 'Fixing headerless indefinable alignment with header and ruler parameter' {
-			
-			$Actual = ConvertFrom-SourceTable -Header '    C1       C2' -Ruler '    ----- -----' '
-				11 ,2 1, 22
-			'
-			
-			$Actual.C1 | Should -Be '11 ,2'
-			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
-		}
-
-		It 'Fixing headerless indefinable alignment with combined header(/ruler) parameter' {
-			
-			$Actual = ConvertFrom-SourceTable -Header '    C1--- ---C2' '
-				11 ,2 1, 22
-			'
-			
-			$Actual.C1 | Should -Be '11 ,2'
-			$Actual.C2[0] | Should -Be 1; $Actual.C2[1] | Should -Be 22
-		}
-
-	}
-
-	Context 'Header and ruler challenges' {
-	
-		It 'Source table without ruler' {
-		
-			$Actual = ConvertFrom-SourceTable '
-				Name Value
-				A        1
-				B        2
-			'
-			$Actual[0].Name | Should -Be "A"; $Actual[0].Value | Should -Be 1
-			$Actual[1].Name | Should -Be "B"; $Actual[1].Value | Should -Be 2
-		}
-	
-		It 'Source table with space in header name' {
-		
-			$Actual = ConvertFrom-SourceTable '
-				Name Value
-				----------
-				A        1
-				B        2
-			'
-			$Actual[0].'Name Value' | Should -Be 'A        1'
-			$Actual[1].'Name Value' | Should -Be 'B        2'
-		}
-	
-		It 'Source table with assigned ruler' {
-		
-			$Actual = ConvertFrom-SourceTable -Ruler '    ----------' '
-				Name Value
-				A        1
-				B        2
-			'
-			$Actual[0].'Name Value' | Should -Be 'A        1'
-			$Actual[1].'Name Value' | Should -Be 'B        2'
-		}
-	
-		It 'Source table with assigned header' {
-		
-			$Actual = ConvertFrom-SourceTable -Header '    Name Value' '
-				A        1
-				B        2
-			'
-			$Actual[0].Name | Should -Be "A"; $Actual[0].Value | Should -Be 1
-			$Actual[1].Name | Should -Be "B"; $Actual[1].Value | Should -Be 2
-		}
-		
-		It 'Markdown table without ruler' {
-	
-			$Actual = ConvertFrom-SourceTable '
-				|------------|
-				| Name Value |
-				|------------|
-				| A        1 |
-				| B        2 |
-				|------------|
-			'
-			$Actual[0].'Name Value' | Should -Be 'A        1'
-			$Actual[1].'Name Value' | Should -Be 'B        2'
-		}
-	}
-
-	$RGB = @(
-		[PSCustomObject]@{'Color' = 'Red'},
-		[PSCustomObject]@{'Color' = 'Green'},
-		[PSCustomObject]@{'Color' = 'Yellow'}
-	)
-
-	Context 'Single column source table' {
-	
-		It 'Left aligned' {
-		
-			$Actual = ConvertFrom-SourceTable '
-				Color
-				-----
-				Red
-				Green
-				Yellow
-			'
-			,$Actual | Should-BeObject $RGB
-		}
-
-		It 'Right aligned' {
-		
-			$Actual = ConvertFrom-SourceTable '
-				   Color
-				   -----
-				   "Red"
-				 "Green"
-				"Yellow"
-			'
-			,$Actual | Should-BeObject $RGB
-		}
-
-		It 'Blank lines at the top and bottom' {
-		
-			$Actual = ConvertFrom-SourceTable '
-			
-			
-				Color
-				-----
-				Red
-				Green
-				Yellow
-			
-			
-			'
-			,$Actual | Should-BeObject $RGB
-		}
-	}
-	Context 'Normal single column mark down table' {
-	
-		It 'Left aligned' {
-		
-			$Actual = ConvertFrom-SourceTable '
-				|--------|
-				| Color  |
-				|--------|
-				| Red    |
-				| Green  |
-				| Yellow |
-				|--------|
-			'
-			,$Actual | Should-BeObject $RGB
-		}
-
-		It 'Right aligned' {
-		
-			$Actual = ConvertFrom-SourceTable '
-				|----------|
-				|    Color |
-				|----------|
-				|    "Red" |
-				|  "Green" |
-				| "Yellow" |
-				|----------|
-			'
-			,$Actual | Should-BeObject $RGB
-		}
-	}
-	Context 'Narrow single column mark down table' {
-	
-		It 'Left aligned' {
-		
-			$Actual = ConvertFrom-SourceTable '
-				|------|
-				|Color |
-				|------|
-				|Red   |
-				|Green |
-				|Yellow|
-				|------|
-			'
-			,$Actual | Should-BeObject $RGB
-		}
-
-		It 'Right aligned' {
-		
-			$Actual = ConvertFrom-SourceTable '
-				|--------|
-				|   Color|
-				|--------|
-				|   "Red"|
-				| "Green"|
-				|"Yellow"|
-				|--------|
-			'
-			,$Actual | Should-BeObject $RGB
-		}
-	}
-
-	Context 'Resolved bugs' {
-	
-		It 'Single width column at position 0' {
-
-			$Actual = ConvertFrom-SourceTable '
-A B    XY   ZY  
-- -    --   --  
-1 val1 foo1 bar1
-2 val2 foo2 bar2
-3 val3 foo3 bar3
-4 val4 foo4 bar4
-5 val5 foo5 bar5
-6 val6 foo6 bar6'
-
-			,$Actual | Should-BeObject @(
-				[PSCustomObject]@{'A' = '1'; 'B' = 'val1'; 'XY' = 'foo1'; 'ZY' = 'bar1'},
-				[PSCustomObject]@{'A' = '2'; 'B' = 'val2'; 'XY' = 'foo2'; 'ZY' = 'bar2'},
-				[PSCustomObject]@{'A' = '3'; 'B' = 'val3'; 'XY' = 'foo3'; 'ZY' = 'bar3'},
-				[PSCustomObject]@{'A' = '4'; 'B' = 'val4'; 'XY' = 'foo4'; 'ZY' = 'bar4'},
-				[PSCustomObject]@{'A' = '5'; 'B' = 'val5'; 'XY' = 'foo5'; 'ZY' = 'bar5'},
-				[PSCustomObject]@{'A' = '6'; 'B' = 'val6'; 'XY' = 'foo6'; 'ZY' = 'bar6'}
-				)
-			
-		}
-
-		It 'Here table without ruler with spaces in header' {
-
-			$Actual = ConvertFrom-SourceTable -Literal '
- USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
- a2270725-3                               13  Disc      2+00:17  7/2/2019 1:50 PM
- a2232655-3                               14  Disc      4+09:54  7/1/2019 2:10 AM
- a2129521-3                               30  Disc      2+04:50  7/1/2019 4:52 AM
- a16991754-3                              49  Disc        22:51  7/1/2019 5:44 AM
- p.vbr.1                                  58  Disc      4+20:19  6/25/2019 11:20 AM
- a16990384-3                              59  Disc         1:43  6/27/2019 10:20 AM
- a2169135-3                               68  Disc      3+00:50  7/2/2019 11:13 AM
- a2289685-3                               79  Disc         6:40  7/2/2019 9:04 PM
->a2310806-3            rdp-tcp#93         85  Active          .  7/1/2019 9:05 AM
- a16991667-3                              98  Disc      3+00:31  6/26/2019 6:35 AM
- a2064837-3                              107  Disc         8:32  7/3/2019 12:47 AM
- a2282463-3                              108  Disc      2+01:51  7/3/2019 8:55 AM
- a2292833-3                              116  Disc      1+21:30  7/3/2019 2:06 PM
- a18005447-3                             126  Disc      8+20:09  6/26/2019 2:48 PM
- a2185113-3                              135  Disc         9:19  6/26/2019 9:14 PM
- a2067993-3                              139  Disc      1+03:58  7/4/2019 8:08 AM
- a2101008-3                              140  Disc         5:10  7/3/2019 10:00 PM
- a2256517-3                              141  Disc      1+03:32  7/4/2019 8:32 AM
- a2340150-3                              142  Disc        12:35  7/4/2019 9:53 PM
- a2076309-3                              143  Disc         3:37  7/5/2019 3:37 AM'
-
-		,$Actual | Should-BeObject @(
-				[PSCustomObject]@{'ID' = '13'; 'IDLE TIME' = '2+00:17'; 'LOGON TIME' = '7/2/2019 1:50 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2270725-3'},
-				[PSCustomObject]@{'ID' = '14'; 'IDLE TIME' = '4+09:54'; 'LOGON TIME' = '7/1/2019 2:10 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2232655-3'},
-				[PSCustomObject]@{'ID' = '30'; 'IDLE TIME' = '2+04:50'; 'LOGON TIME' = '7/1/2019 4:52 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2129521-3'},
-				[PSCustomObject]@{'ID' = '49'; 'IDLE TIME' = '22:51'; 'LOGON TIME' = '7/1/2019 5:44 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a16991754-3'},
-				[PSCustomObject]@{'ID' = '58'; 'IDLE TIME' = '4+20:19'; 'LOGON TIME' = '6/25/2019 11:20 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'p.vbr.1'},
-				[PSCustomObject]@{'ID' = '59'; 'IDLE TIME' = '1:43'; 'LOGON TIME' = '6/27/2019 10:20 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a16990384-3'},
-				[PSCustomObject]@{'ID' = '68'; 'IDLE TIME' = '3+00:50'; 'LOGON TIME' = '7/2/2019 11:13 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2169135-3'},
-				[PSCustomObject]@{'ID' = '79'; 'IDLE TIME' = '6:40'; 'LOGON TIME' = '7/2/2019 9:04 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2289685-3'},
-				[PSCustomObject]@{'ID' = '85'; 'IDLE TIME' = '.'; 'LOGON TIME' = '7/1/2019 9:05 AM'; 'SESSIONNAME' = 'rdp-tcp#93'; 'STATE' = 'Active'; 'USERNAME' = '>a2310806-3'},
-				[PSCustomObject]@{'ID' = '98'; 'IDLE TIME' = '3+00:31'; 'LOGON TIME' = '6/26/2019 6:35 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a16991667-3'},
-				[PSCustomObject]@{'ID' = '107'; 'IDLE TIME' = '8:32'; 'LOGON TIME' = '7/3/2019 12:47 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2064837-3'},
-				[PSCustomObject]@{'ID' = '108'; 'IDLE TIME' = '2+01:51'; 'LOGON TIME' = '7/3/2019 8:55 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2282463-3'},
-				[PSCustomObject]@{'ID' = '116'; 'IDLE TIME' = '1+21:30'; 'LOGON TIME' = '7/3/2019 2:06 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2292833-3'},
-				[PSCustomObject]@{'ID' = '126'; 'IDLE TIME' = '8+20:09'; 'LOGON TIME' = '6/26/2019 2:48 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a18005447-3'},
-				[PSCustomObject]@{'ID' = '135'; 'IDLE TIME' = '9:19'; 'LOGON TIME' = '6/26/2019 9:14 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2185113-3'},
-				[PSCustomObject]@{'ID' = '139'; 'IDLE TIME' = '1+03:58'; 'LOGON TIME' = '7/4/2019 8:08 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2067993-3'},
-				[PSCustomObject]@{'ID' = '140'; 'IDLE TIME' = '5:10'; 'LOGON TIME' = '7/3/2019 10:00 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2101008-3'},
-				[PSCustomObject]@{'ID' = '141'; 'IDLE TIME' = '1+03:32'; 'LOGON TIME' = '7/4/2019 8:32 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2256517-3'},
-				[PSCustomObject]@{'ID' = '142'; 'IDLE TIME' = '12:35'; 'LOGON TIME' = '7/4/2019 9:53 PM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2340150-3'},
-				[PSCustomObject]@{'ID' = '143'; 'IDLE TIME' = '3:37'; 'LOGON TIME' = '7/5/2019 3:37 AM'; 'SESSIONNAME' = ''; 'STATE' = 'Disc'; 'USERNAME' = 'a2076309-3'}
-			)
-		}
-
-		It 'Last line contains white spaces and data is floating' {
-
-			$Actual = ConvertFrom-SourceTable '
-				Department  Id     Name             Country            Age      ReportsTo
-				----------  --     ----             -------            ---      ---------
-				Engineering {2, 4} {Bauer, Duval}   {Germany, France}  {31, 21} {4, 5}
-				Sales       {3, 1} {Cook, Aerts}    {England, Belgium} {69, 40} {1, 5}
-				Engineering {6, 4} {Fischer, Duval} {Germany, France}  {29, 21} {4, 5}
-				'
-
-			,$Actual | Should-BeObject @(
-				[pscustomobject]@{'Age' = '{31, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{2, 4}'; 'Name' = '{Bauer, Duval}'; 'ReportsTo' = '{4, 5}'},
-				[pscustomobject]@{'Age' = '{69, 40}'; 'Country' = '{England, Belgium}'; 'Department' = 'Sales'; 'Id' = '{3, 1}'; 'Name' = '{Cook, Aerts}'; 'ReportsTo' = '{1, 5}'},
-				[pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
-			)
-			
-			$Actual = ConvertFrom-SourceTable '
-				Department  Id     Name             Country            Age      ReportsTo
-
-				----------  --     ----             -------            ---      ---------
-
-				Engineering {2, 4} {Bauer, Duval}   {Germany, France}  {31, 21} {4, 5}
-
-				Sales       {3, 1} {Cook, Aerts}    {England, Belgium} {69, 40} {1, 5}
-
-				Engineering {6, 4} {Fischer, Duval} {Germany, France}  {29, 21} {4, 5}
-'
-
-			,$Actual | Should-BeObject @(
-				[pscustomobject]@{'Age' = '{31, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{2, 4}'; 'Name' = '{Bauer, Duval}'; 'ReportsTo' = '{4, 5}'},
-				[pscustomobject]@{'Age' = '{69, 40}'; 'Country' = '{England, Belgium}'; 'Department' = 'Sales'; 'Id' = '{3, 1}'; 'Name' = '{Cook, Aerts}'; 'ReportsTo' = '{1, 5}'},
-				[pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
-			)
-
-			$Actual = ConvertFrom-SourceTable '
-				Department  Id     Name             Country            Age      ReportsTo
-				
-				----------  --     ----             -------            ---      ---------
-				
-				Engineering {2, 4} {Bauer, Duval}   {Germany, France}  {31, 21} {4, 5}
-				
-				Sales       {3, 1} {Cook, Aerts}    {England, Belgium} {69, 40} {1, 5}
-				
-				Engineering {6, 4} {Fischer, Duval} {Germany, France}  {29, 21} {4, 5}
-				'
-
-			,$Actual | Should-BeObject @(
-				[pscustomobject]@{'Age' = '{31, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{2, 4}'; 'Name' = '{Bauer, Duval}'; 'ReportsTo' = '{4, 5}'},
-				[pscustomobject]@{'Age' = '{69, 40}'; 'Country' = '{England, Belgium}'; 'Department' = 'Sales'; 'Id' = '{3, 1}'; 'Name' = '{Cook, Aerts}'; 'ReportsTo' = '{1, 5}'},
-				[pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
-			)
-		}
-		
-		It 'Markdown table without ruler' {
-
-			$Table = '
-				date      |  abc |    A |  B |    C |    D |    E |  F |  G |
-				6/4/2019  | 6775 | 3059 |  4 | 2292 | 1328 |  764 |  0 |  0 |
-				6/4/2019  | 6910 | 3167 | 28 | 3568 | 1180 | 1348 |  0 |  0 |
-				6/4/2019  | 6749 | 3161 |  0 | 2180 | 2060 | 1440 |  0 | 28 |
-				6/5/2019  | 6738 | 3118 |  4 | 2736 | 1396 |  984 |  0 |  0 |
-				6/5/2019  | 6718 | 3130 | 12 | 3076 | 1008 |  452 |  0 |  4 |
-				6/5/2019  | 6894 | 3046 |  4 | 2284 | 1556 |  624 |  0 |  0 |
-				'
-			
-			$Object = @(
-				[pscustomobject]@{'A' = 3059; 'abc' = 6775; 'B' = 4; 'C' = 2292; 'D' = 1328; 'E' = 764; 'F' = 0; 'G' = 0; 'date' = '6/4/2019'},
-				[pscustomobject]@{'A' = 3167; 'abc' = 6910; 'B' = 28; 'C' = 3568; 'D' = 1180; 'E' = 1348; 'F' = 0; 'G' = 0; 'date' = '6/4/2019'},
-				[pscustomobject]@{'A' = 3161; 'abc' = 6749; 'B' = 0; 'C' = 2180; 'D' = 2060; 'E' = 1440; 'F' = 0; 'G' = 28; 'date' = '6/4/2019'},
-				[pscustomobject]@{'A' = 3118; 'abc' = 6738; 'B' = 4; 'C' = 2736; 'D' = 1396; 'E' = 984; 'F' = 0; 'G' = 0; 'date' = '6/5/2019'},
-				[pscustomobject]@{'A' = 3130; 'abc' = 6718; 'B' = 12; 'C' = 3076; 'D' = 1008; 'E' = 452; 'F' = 0; 'G' = 4; 'date' = '6/5/2019'},
-				[pscustomobject]@{'A' = 3046; 'abc' = 6894; 'B' = 4; 'C' = 2284; 'D' = 1556; 'E' = 624; 'F' = 0; 'G' = 0; 'date' = '6/5/2019'}
-			)
-			
-			$Actual =  ConvertFrom-SourceTable $Table
-			,$Actual | Should-BeObject $Object
-			
-			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-			,$Actual | Should-BeObject $Object
-
-		}
-	}
-}
+}; Set-Alias ctex ConvertTo-Expression
