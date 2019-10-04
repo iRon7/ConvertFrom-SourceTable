@@ -132,9 +132,9 @@ searched for a ruler existing out of horizontal dash characters (`-`),
 spaces and possible vertical dashes. If the ruler is found, the prior
 line is presumed to be the header. If the ruler is not found within
 the first (two) streamed data lines, the first line is presumed the
-header line.
+header line.  
 If `-HorizontalDash` explicitly defined, all (streamed) lines will be
-searched for a matching ruler.
+searched for a matching ruler.  
 If `-HorizontalDash` is set to `$Null`, the first data line is presumed
 the header line (unless the `-VerticalDash` parameter is set).
 
@@ -143,9 +143,9 @@ the header line (unless the `-VerticalDash` parameter is set).
 By default, each streamed table row (or a total raw table) will be
 searched for a header with vertical dash characters (`|`). If the
 header is not found within the first streamed data line, the first
-line is presumed the header line.
+line is presumed the header line.  
 If `-VerticalDash` explicitly defined, all (streamed) lines will be
-searched for a header with a vertical dash character.
+searched for a header with a vertical dash character.  
 If `-VerticalDash` is set to `$Null`, the first data line is presumed
 the header line (unless the `-HorizontalDash` parameter is set).
 
