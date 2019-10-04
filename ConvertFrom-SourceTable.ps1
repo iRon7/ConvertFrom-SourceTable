@@ -2,7 +2,7 @@
 .VERSION 0.3.2
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
-.DESCRIPTION Converts a source table (format-table) or markdown table to objects
+.DESCRIPTION Converts a fixed column table to objects.
 .COMPANYNAME
 .COPYRIGHT
 .TAGS Read Input Convert Resource Table Format MarkDown
@@ -85,7 +85,7 @@ Function ConvertFrom-SourceTable {
 		header line.
 		If -HorizontalDash explicitly defined, all (streamed) lines will be
 		searched for a matching ruler.
-		If -HorizontalDash is omitted, the first data line is presumed the
+		If -HorizontalDash is set to `$Null`, the first data line is presumed
 		the header line (unless the -VerticalDash parameter is set).
 
 	.PARAMETER VerticalDash
@@ -96,7 +96,7 @@ Function ConvertFrom-SourceTable {
 		line is presumed the header line.
 		If -VerticalDash explicitly defined, all (streamed) lines will be
 		searched for a header with a vertical dash character.
-		If -VerticalDash is omitted, the first data line is presumed the
+		If -VerticalDash is set to `$Null`, the first data line is presumed
 		the header line (unless the -HorizontalDash parameter is set).
 
 	.PARAMETER Literal
