@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.3.3
+.VERSION 0.3.4
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a fixed column table to objects.
@@ -401,7 +401,7 @@ $Message
 					$Fields = If ($VRx -and $Line -notlike $Mask) {$Line -Split $VRx}
 					ForEach($Column in $Columns) {
 						$Property[$Column.Name] = If ($Fields) {
-							$Fields[$Column.Index]
+							$Fields[$Column.Index].Trim()
 						} Else {
 							$Field = Slice -String $Line -Start $Column.Start -End $Column.End
 							If ($Field -is [String]) {
