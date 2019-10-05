@@ -22,7 +22,7 @@
 0.1.1     2018-11-13     Ronald Bode Added -Ruler parameter to add alignment info
 0.1.2     2018-11-14     Ronald Bode Added -Header parameter to add header info
 0.1.3     2018-11-15     Ronald Bode Added -Literal parameter to prevent any evalutation
-0.1.4     2018-11-15     Ronald Bode A manual suppied ruler (-Ruler <string>) suppresses all embedded rulers 
+0.1.4     2018-11-15     Ronald Bode A manual supplied ruler (-Ruler <string>) suppresses all embedded rulers 
 0.1.5     2018-11-16     Ronald Bode Improved performance avoiding regex MaskString
 0.1.6     2018-11-16     Ronald Bode Depleted PSCustomObject alias 'O' and DateTime alias 'D' wrappers
 0.2.0     2018-11-18     Ronald Bode Shortened example
@@ -35,3 +35,11 @@
 0.2.7     2019-07-05     Ronald Bode Fixed bug were the last line contains white spaces and data is floating
 0.2.8     2019-07-19     Ronald Bode Fixed issue were a markdown table has no outer borders
 0.2.9     2019-07-20     Ronald Bode Changed error handling
+0.3.2     2019-10-04     Renamed -HorizontalRuler parameter to -HorizontalDash (alias HDash)
+                         Renamed -VerticalRuler parameter to -VerticalDash (alias VDash)
+                         Depleted -Markdown parameter (use -VerticalDash parameters instead)
+                         Depleted -Floating parameter (use -VerticalDash/-HorizontalDash parameters instead)
+                         Improved (unstructured) table/data recognition algorithm
+                         Support for delimited (non fixed width) CSV files (no support for quoted data)
+0.3.3     2019-10-04     Minor help correction
+0.3.4     2019-10-04     Trimming (string) values in distorted rows
