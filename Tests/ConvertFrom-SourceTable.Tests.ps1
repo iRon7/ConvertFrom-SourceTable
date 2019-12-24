@@ -310,6 +310,47 @@ Describe 'ConvertFrom-Table' {
 		}
 	}
 
+	Context 'Color table with only vertical rulers and casted values' {
+		
+		$Table = '
+			| Name    |    Value |           RGB |
+			| Black   | 0x000000 |       0, 0, 0 |
+			| White   | 0xFFFFFF | 255, 255, 255 |
+			| Red     | 0xFF0000 |     255, 0, 0 |
+			| Lime    | 0x00FF00 |     0, 255, 0 |
+			| Blue    | 0x0000FF |     0, 0, 255 |
+			| Yellow  | 0xFFFF00 |   255, 255, 0 |
+			| Cyan    | 0x00FFFF |   0, 255, 255 |
+			| Magenta | 0xFF00FF |   255, 0, 255 |
+			| Silver  | 0xC0C0C0 | 192, 192, 192 |
+			| Gray    | 0x808080 | 128, 128, 128 |
+			| Maroon  | 0x800000 |     128, 0, 0 |
+			| Olive   | 0x808000 |   128, 128, 0 |
+			| Green   | 0x008000 |     0, 128, 0 |
+			| Purple  | 0x800080 |   128, 0, 128 |
+			| Teal    | 0x008080 |   0, 128, 128 |
+			| Navy    | 0x000080 |     0, 0, 128 |
+		'
+		Write-Host $Table
+
+		$Object = $ColorObject
+
+		It 'Raw table as argument' {
+			$Actual = ConvertFrom-SourceTable $Table
+			,$Actual | Differentiate $Object | Should -Be 0
+		}
+
+		It 'Raw table from pipeline' {
+			$Actual = $Table | ConvertFrom-SourceTable
+			,$Actual | Differentiate $Object | Should -Be 0
+		}
+
+		It 'Streamed table lines from pipeline' {
+			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+			,$Actual | Differentiate $Object | Should -Be 0
+		}
+	}
+
 	Context 'Table without Ruler' {
 	
 		$Table = '
@@ -1330,7 +1371,8 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
 				[pscustomobject]@{'PlanetName' = 'Zamoran'; 'Loc.' = '2108'; 'UPP Code' = 'B674675-A'; 'B' = 'Q'; 'Notes' = 'Ag Ni'; 'Z' = ''; 'PBG' = '904'; 'Al' = 'Dr'; 'LRX' = ''; 'X' = ''}
 			) | Should -Be 0
 		}
-			It 'Getting an average of each column from CSV' {					# https://stackoverflow.com/q/57087760/1701026
+
+		It 'Getting an average of each column from CSV' {					# https://stackoverflow.com/q/57087760/1701026
 
 			$Table = '
 				timestamp   streams TRP A   B   C   D 
@@ -1366,24 +1408,24 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
 			,$Actual | Differentiate $Object | Should -Be 0
 
 			$Table = '
-				date      |  abc |    A |  B |    C |    D |    E |  F |  G |
-				6/4/2019  | 6775 | 3059 |  4 | 2292 | 1328 |  764 |  0 |  0 |
-				6/4/2019  | 6910 | 3167 | 28 | 3568 | 1180 | 1348 |  0 |  0 |
-				6/4/2019  | 6749 | 3161 |  0 | 2180 | 2060 | 1440 |  0 | 28 |
-				6/5/2019  | 6738 | 3118 |  4 | 2736 | 1396 |  984 |  0 |  0 |
-				6/5/2019  | 6718 | 3130 | 12 | 3076 | 1008 |  452 |  0 |  4 |
-				6/5/2019  | 6894 | 3046 |  4 | 2284 | 1556 |  624 |  0 |  0 |
-				1/1/2021  | 1111 | 2222 |  3 | 4444 | 5555 | 666  |  7 |  8 |
-				'
+				| date      |  abc |    A |  B |    C |    D |    E |  F |  G |
+				| 6/4/2019  | 6775 | 3059 |  4 | 2292 | 1328 |  764 |  0 |  0 |
+				| 6/4/2019  | 6910 | 3167 | 28 | 3568 | 1180 | 1348 |  0 |  0 |
+				| 6/4/2019  | 6749 | 3161 |  0 | 2180 | 2060 | 1440 |  0 | 28 |
+				| 6/5/2019  | 6738 | 3118 |  4 | 2736 | 1396 |  984 |  0 |  0 |
+				| 6/5/2019  | 6718 | 3130 | 12 | 3076 | 1008 |  452 |  0 |  4 |
+				| 6/5/2019  | 6894 | 3046 |  4 | 2284 | 1556 |  624 |  0 |  0 |
+				| 1/1/2021  | 1111 | 2222 |  3 | 4444 | 5555 |  666 |  7 |  8 |
+			'
 			
 			$Object = @(
-				[pscustomobject]@{'date' = '6/4/2019'; 'abc' = '6775'; 'A' = '3059'; 'B' = '4'; 'C' = '2292'; 'D' = '1328'; 'E' = '764'; 'F' = '0'; 'G' = '0'},
-				[pscustomobject]@{'date' = '6/4/2019'; 'abc' = '6910'; 'A' = '3167'; 'B' = '28'; 'C' = '3568'; 'D' = '1180'; 'E' = '1348'; 'F' = '0'; 'G' = '0'},
-				[pscustomobject]@{'date' = '6/4/2019'; 'abc' = '6749'; 'A' = '3161'; 'B' = '0'; 'C' = '2180'; 'D' = '2060'; 'E' = '1440'; 'F' = '0'; 'G' = '28'},
-				[pscustomobject]@{'date' = '6/5/2019'; 'abc' = '6738'; 'A' = '3118'; 'B' = '4'; 'C' = '2736'; 'D' = '1396'; 'E' = '984'; 'F' = '0'; 'G' = '0'},
-				[pscustomobject]@{'date' = '6/5/2019'; 'abc' = '6718'; 'A' = '3130'; 'B' = '12'; 'C' = '3076'; 'D' = '1008'; 'E' = '452'; 'F' = '0'; 'G' = '4'},
-				[pscustomobject]@{'date' = '6/5/2019'; 'abc' = '6894'; 'A' = '3046'; 'B' = '4'; 'C' = '2284'; 'D' = '1556'; 'E' = '624'; 'F' = '0'; 'G' = '0'},
-				[pscustomobject]@{'date' = '1/1/2021'; 'abc' = '1111'; 'A' = '2222'; 'B' = '3'; 'C' = '4444'; 'D' = '5555'; 'E' = '666'; 'F' = '7'; 'G' = '8'}
+				[pscustomobject]@{'date' = '6/4/2019'; 'abc' = 6775; 'A' = 3059; 'B' = 4; 'C' = 2292; 'D' = 1328; 'E' = 764; 'F' = 0; 'G' = 0}
+				[pscustomobject]@{'date' = '6/4/2019'; 'abc' = 6910; 'A' = 3167; 'B' = 28; 'C' = 3568; 'D' = 1180; 'E' = 1348; 'F' = 0; 'G' = 0}
+				[pscustomobject]@{'date' = '6/4/2019'; 'abc' = 6749; 'A' = 3161; 'B' = 0; 'C' = 2180; 'D' = 2060; 'E' = 1440; 'F' = 0; 'G' = 28}
+				[pscustomobject]@{'date' = '6/5/2019'; 'abc' = 6738; 'A' = 3118; 'B' = 4; 'C' = 2736; 'D' = 1396; 'E' = 984; 'F' = 0; 'G' = 0}
+				[pscustomobject]@{'date' = '6/5/2019'; 'abc' = 6718; 'A' = 3130; 'B' = 12; 'C' = 3076; 'D' = 1008; 'E' = 452; 'F' = 0; 'G' = 4}
+				[pscustomobject]@{'date' = '6/5/2019'; 'abc' = 6894; 'A' = 3046; 'B' = 4; 'C' = 2284; 'D' = 1556; 'E' = 624; 'F' = 0; 'G' = 0}
+				[pscustomobject]@{'date' = '1/1/2021'; 'abc' = 1111; 'A' = 2222; 'B' = 3; 'C' = 4444; 'D' = 5555; 'E' = 666; 'F' = 7; 'G' = 8}
 			)
 			
 			$Actual =  ConvertFrom-SourceTable $Table
@@ -1393,24 +1435,24 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
 			,$Actual | Differentiate $Object | Should -Be 0
 
 			$Table = '
-timestamp|abc | A     |  B  |  C   |   D  |  E   |  F  |  G    |
-6/4/2019 |6775 |  3059 |  4  | 2292 | 1328 | 764  |  0 |  0  |
-6/4/2019 |6910 |  3167 |  28 | 3568 | 1180 | 1348 |  0 |  0  |
-6/4/2019 |6749 |  3161 |  0  | 2180 | 2060 | 1440 |  0 |  28 |
-6/5/2019 |6738 |  3118 |  4  | 2736 | 1396 | 984  |  0 |  0  |
-6/5/2019 |6718 |  3130 |  12 | 3076 | 1008 | 452  |  0 |  4  |
-6/5/2019 |6894 |  3046 |  4  | 2284 | 1556 | 624  |  0 |  0  |
-1/1/2021 |1111 |  2222 |  3  | 4444 | 5555 | 666  |  7 |  8  |
+				timestamp|abc | A     |  B  |  C   |   D  |  E   |  F  |  G    |
+				6/4/2019 |6775 |  3059 |  4  | 2292 | 1328 | 764  |  0 |  0  |
+				6/4/2019 |6910 |  3167 |  28 | 3568 | 1180 | 1348 |  0 |  0  |
+				6/4/2019 |6749 |  3161 |  0  | 2180 | 2060 | 1440 |  0 |  28 |
+				6/5/2019 |6738 |  3118 |  4  | 2736 | 1396 | 984  |  0 |  0  |
+				6/5/2019 |6718 |  3130 |  12 | 3076 | 1008 | 452  |  0 |  4  |
+				6/5/2019 |6894 |  3046 |  4  | 2284 | 1556 | 624  |  0 |  0  |
+				1/1/2021 |1111 |  2222 |  3  | 4444 | 5555 | 666  |  7 |  8  |
 				'
 			
 			$Object = @(
-				[pscustomobject]@{'timestamp' = '6/4/2019 '; 'abc' = '6775 '; 'A' = '  3059 '; 'B' = '  4  '; 'C' = ' 2292 '; 'D' = ' 1328 '; 'E' = ' 764  '; 'F' = '  0 '; 'G' = '  0  '},
-				[pscustomobject]@{'timestamp' = '6/4/2019 '; 'abc' = '6910 '; 'A' = '  3167 '; 'B' = '  28 '; 'C' = ' 3568 '; 'D' = ' 1180 '; 'E' = ' 1348 '; 'F' = '  0 '; 'G' = '  0  '},
-				[pscustomobject]@{'timestamp' = '6/4/2019 '; 'abc' = '6749 '; 'A' = '  3161 '; 'B' = '  0  '; 'C' = ' 2180 '; 'D' = ' 2060 '; 'E' = ' 1440 '; 'F' = '  0 '; 'G' = '  28 '},
-				[pscustomobject]@{'timestamp' = '6/5/2019 '; 'abc' = '6738 '; 'A' = '  3118 '; 'B' = '  4  '; 'C' = ' 2736 '; 'D' = ' 1396 '; 'E' = ' 984  '; 'F' = '  0 '; 'G' = '  0  '},
-				[pscustomobject]@{'timestamp' = '6/5/2019 '; 'abc' = '6718 '; 'A' = '  3130 '; 'B' = '  12 '; 'C' = ' 3076 '; 'D' = ' 1008 '; 'E' = ' 452  '; 'F' = '  0 '; 'G' = '  4  '},
-				[pscustomobject]@{'timestamp' = '6/5/2019 '; 'abc' = '6894 '; 'A' = '  3046 '; 'B' = '  4  '; 'C' = ' 2284 '; 'D' = ' 1556 '; 'E' = ' 624  '; 'F' = '  0 '; 'G' = '  0  '},
-				[pscustomobject]@{'timestamp' = '1/1/2021 '; 'abc' = '1111 '; 'A' = '  2222 '; 'B' = '  3  '; 'C' = ' 4444 '; 'D' = ' 5555 '; 'E' = ' 666  '; 'F' = '  7 '; 'G' = '  8  '}
+				[pscustomobject]@{'timestamp' = '6/4/2019'; 'abc' = '6775'; 'A' = '3059'; 'B' = '4'; 'C' = '2292'; 'D' = '1328'; 'E' = '764'; 'F' = '0'; 'G' = '0'}
+				[pscustomobject]@{'timestamp' = '6/4/2019'; 'abc' = '6910'; 'A' = '3167'; 'B' = '28'; 'C' = '3568'; 'D' = '1180'; 'E' = '1348'; 'F' = '0'; 'G' = '0'}
+				[pscustomobject]@{'timestamp' = '6/4/2019'; 'abc' = '6749'; 'A' = '3161'; 'B' = '0'; 'C' = '2180'; 'D' = '2060'; 'E' = '1440'; 'F' = '0'; 'G' = '28'}
+				[pscustomobject]@{'timestamp' = '6/5/2019'; 'abc' = '6738'; 'A' = '3118'; 'B' = '4'; 'C' = '2736'; 'D' = '1396'; 'E' = '984'; 'F' = '0'; 'G' = '0'}
+				[pscustomobject]@{'timestamp' = '6/5/2019'; 'abc' = '6718'; 'A' = '3130'; 'B' = '12'; 'C' = '3076'; 'D' = '1008'; 'E' = '452'; 'F' = '0'; 'G' = '4'}
+				[pscustomobject]@{'timestamp' = '6/5/2019'; 'abc' = '6894'; 'A' = '3046'; 'B' = '4'; 'C' = '2284'; 'D' = '1556'; 'E' = '624'; 'F' = '0'; 'G' = '0'}
+				[pscustomobject]@{'timestamp' = '1/1/2021'; 'abc' = '1111'; 'A' = '2222'; 'B' = '3'; 'C' = '4444'; 'D' = '5555'; 'E' = '666'; 'F' = '7'; 'G' = '8'}
 			)
 			
 			$Actual =  ConvertFrom-SourceTable $Table
@@ -1418,6 +1460,55 @@ timestamp|abc | A     |  B  |  C   |   D  |  E   |  F  |  G    |
 			
 			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
 			,$Actual | Differentiate $Object | Should -Be 0
+
+			$Table = '
+				timestamp   streams TRP  A    B   C   D 
+				6/4/2019       6775 305 56  229 132 764
+				6/4/2019       6910 316 28  356 118 134
+				6/4/2019       6749 316 54  218 206 144
+				6/5/2019       5186 267 84  280 452 258
+				6/5/2019       5187 240 33  436 455 245
+				6/5/2019       5224 291 21  245 192 654
+				6/6/2019       5254 343 42  636 403 789
+				6/6/2019       5180 252 23  169 328 888
+				6/6/2019       5181 290 32  788 129 745
+				6/6/2019       5244 328 44  540 403 989
+			'
+			
+			$Object = @(
+				[pscustomobject]@{'timestamp' = '6/4/2019'; 'streams' = 6775; 'TRP' = '305'; 'A' = 56; 'B' = 229; 'C' = 132; 'D' = 764}
+				[pscustomobject]@{'timestamp' = '6/4/2019'; 'streams' = 6910; 'TRP' = '316'; 'A' = 28; 'B' = 356; 'C' = 118; 'D' = 134}
+				[pscustomobject]@{'timestamp' = '6/4/2019'; 'streams' = 6749; 'TRP' = '316'; 'A' = 54; 'B' = 218; 'C' = 206; 'D' = 144}
+				[pscustomobject]@{'timestamp' = '6/5/2019'; 'streams' = 5186; 'TRP' = '267'; 'A' = 84; 'B' = 280; 'C' = 452; 'D' = 258}
+				[pscustomobject]@{'timestamp' = '6/5/2019'; 'streams' = 5187; 'TRP' = '240'; 'A' = 33; 'B' = 436; 'C' = 455; 'D' = 245}
+				[pscustomobject]@{'timestamp' = '6/5/2019'; 'streams' = 5224; 'TRP' = '291'; 'A' = 21; 'B' = 245; 'C' = 192; 'D' = 654}
+				[pscustomobject]@{'timestamp' = '6/6/2019'; 'streams' = 5254; 'TRP' = '343'; 'A' = 42; 'B' = 636; 'C' = 403; 'D' = 789}
+				[pscustomobject]@{'timestamp' = '6/6/2019'; 'streams' = 5180; 'TRP' = '252'; 'A' = 23; 'B' = 169; 'C' = 328; 'D' = 888}
+				[pscustomobject]@{'timestamp' = '6/6/2019'; 'streams' = 5181; 'TRP' = '290'; 'A' = 32; 'B' = 788; 'C' = 129; 'D' = 745}
+				[pscustomobject]@{'timestamp' = '6/6/2019'; 'streams' = 5244; 'TRP' = '328'; 'A' = 44; 'B' = 540; 'C' = 403; 'D' = 989}
+			)
+			
+			$Actual =  ConvertFrom-SourceTable $Table
+			,$Actual | Differentiate $Object | Should -Be 0
+			
+			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+			,$Actual | Differentiate $Object | Should -Be 0
+
+		}
+		It 'Powershell extract data from text file and convert to csv' {		# https://stackoverflow.com/q/59328405/1701026
+
+			$Actual = ConvertFrom-SourceTable -Header Count,Address,Mode,Port '
+				1        010D.0C93.A02C        Dynamic     Gi1/0/5
+				1        011B.782D.6719        Dynamic     Gi1/0/22
+				1        0003.4790.B479        Dynamic     Gi1/0/1
+				1        0054.B671.1EB8        Dynamic     Gi1/0/2'
+
+			,$Actual | Differentiate @(
+				[pscustomobject]@{'Count' = '1'; 'Address' = '010D.0C93.A02C'; 'Mode' = 'Dynamic'; 'Port' = 'Gi1/0/5'},
+				[pscustomobject]@{'Count' = '1'; 'Address' = '011B.782D.6719'; 'Mode' = 'Dynamic'; 'Port' = 'Gi1/0/22'},
+				[pscustomobject]@{'Count' = '1'; 'Address' = '0003.4790.B479'; 'Mode' = 'Dynamic'; 'Port' = 'Gi1/0/1'},
+				[pscustomobject]@{'Count' = '1'; 'Address' = '0054.B671.1EB8'; 'Mode' = 'Dynamic'; 'Port' = 'Gi1/0/2'}
+			) | Should -Be 0
 
 		}
 	}
@@ -1551,4 +1642,3 @@ A B    XY   ZY
 		
 	}
 }
-
