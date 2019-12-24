@@ -111,14 +111,16 @@ to be part of a specific column (as there is no overview of the table
 data that follows). To resolve this, use one of the folowing ruler or
 header specific parameters.*
 
-`-Header <String>`  
-A string that defines the header line of an headless table. The header
-is used to define the (property) names, the size and alignment of the
-column, therefore it is key that the columns names are properly aligned
-with the rest of the column (including any table indents).
-The `-Header` parameter might also include the ruler functionality by
-omitting any ruler. In this case, all the horizontal ruler characters
-will be replaced by spaces.
+`-Header <String[]>`  
+A string that defines the header line of an headless table or a multiple
+strings where each item represents the column name.
+In case the header contains a single string, it is used to define the
+(property) names, the size and alignment of the column, therefore it is
+key that the columns names are properly aligned with the rest of the
+column (including any table indents).
+If the header contains multiple strings, each string will be used to
+define the property names of each object. In this case, column alignment
+is based on the rest of the data and possible ruler.
 
 `-Ruler <String>`  
 A string that replaces any ruler in the input table which helps to
