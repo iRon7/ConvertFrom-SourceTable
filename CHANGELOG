@@ -43,3 +43,7 @@
                          Support for delimited (non fixed width) CSV files (no support for quoted data)
 0.3.3     2019-10-04     Minor help correction
 0.3.4     2019-10-04     Trimming (string) values in distorted rows
+0.3.5     2019-10-04     Added -Junction parameter (default: "+") for tables with ruler junction characters
+0.3.6     2019-10-04     Added -Anchor parameter (default: ":") for tables with alignment anchors
+0.3.7     2020-01-02     Using the first occurrence of a column in case of a duplicate column name
+0.3.8     2020-01-20     Connect (rulerless) single spaced headers where either column is empty
