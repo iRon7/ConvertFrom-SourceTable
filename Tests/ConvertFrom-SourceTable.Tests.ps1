@@ -351,6 +351,50 @@ Describe 'ConvertFrom-Table' {
 		}
 	}
 
+	Context 'Markdown color table with junction characters' {
+		
+		$Table = '
+			+---------+----------+---------------+
+			| Name    |    Value |           RGB |
+			+---------+----------+---------------+
+			| Black   | 0x000000 |       0, 0, 0 |
+			| White   | 0xFFFFFF | 255, 255, 255 |
+			| Red     | 0xFF0000 |     255, 0, 0 |
+			| Lime    | 0x00FF00 |     0, 255, 0 |
+			| Blue    | 0x0000FF |     0, 0, 255 |
+			| Yellow  | 0xFFFF00 |   255, 255, 0 |
+			| Cyan    | 0x00FFFF |   0, 255, 255 |
+			| Magenta | 0xFF00FF |   255, 0, 255 |
+			| Silver  | 0xC0C0C0 | 192, 192, 192 |
+			| Gray    | 0x808080 | 128, 128, 128 |
+			| Maroon  | 0x800000 |     128, 0, 0 |
+			| Olive   | 0x808000 |   128, 128, 0 |
+			| Green   | 0x008000 |     0, 128, 0 |
+			| Purple  | 0x800080 |   128, 0, 128 |
+			| Teal    | 0x008080 |   0, 128, 128 |
+			| Navy    | 0x000080 |     0, 0, 128 |
+			+---------+----------+---------------+
+		'
+		Write-Host $Table
+
+		$Object = $ColorObject
+
+		It 'Raw table as argument' {
+			$Actual = ConvertFrom-SourceTable $Table
+			,$Actual | Differentiate $Object | Should -Be 0
+		}
+
+		It 'Raw table from pipeline' {
+			$Actual = $Table | ConvertFrom-SourceTable
+			,$Actual | Differentiate $Object | Should -Be 0
+		}
+
+		It 'Streamed table lines from pipeline' {
+			$Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+			,$Actual | Differentiate $Object | Should -Be 0
+		}
+	}
+
 	Context 'Table without Ruler' {
 	
 		$Table = '
@@ -1638,6 +1682,17 @@ A B    XY   ZY
 				[pscustomobject]@{'Age' = '{69, 40}'; 'Country' = '{England, Belgium}'; 'Department' = 'Sales'; 'Id' = '{3, 1}'; 'Name' = '{Cook, Aerts}'; 'ReportsTo' = '{1, 5}'},
 				[pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
 			) | Should -Be 0
+		}
+		
+		It 'Connect (rulerless) single spaced headers where either column is empty' { # https://stackoverflow.com/q/59541667/1701026
+		
+			$Actual = ConvertFrom-SourceTable '
+				NAME            READY   STATUS    RESTARTS   AGE     IP          NODE   NOMINATED NODE   READINESS GATES
+				me-pod-name     2/2     Running   0          6s      10.0.0.10   node1  <none>           <none>
+				me-pod-name-2   1/1     Running   0          6d18h   10.0.1.20   node2  <none>           <none>
+				me-pod-name-3   1/1     Running   0          11d     10.0.0.30   node3  <none>           <none>'
+				
+			
 		}
 		
 	}
