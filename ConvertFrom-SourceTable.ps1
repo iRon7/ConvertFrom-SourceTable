@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.3.5
+.VERSION 0.3.8
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a fixed column table to objects.
@@ -180,14 +180,17 @@ Function ConvertFrom-SourceTable {
 	[CmdletBinding()][OutputType([Object[]])]Param (
 		[Parameter(ValueFromPipeLine = $True)][String[]]$InputObject, [String[]]$Header, [String]$Ruler,
 		[Alias("HDash")][Char]$HorizontalDash = '-', [Alias("VDash")][Char]$VerticalDash = '|',
-		[Switch]$Literal
+		[Char]$Junction = '+', [Char]$Anchor = ':', [Switch]$Literal
 	)
 	Begin {
 		Enum Alignment {None; Left; Right; Justified}
+		Enum Mask {All = 8; Header = 4; Ruler = 2; Data = 1}
 		$Auto = !$PSBoundParameters.ContainsKey('HorizontalDash') -and !$PSBoundParameters.ContainsKey('VerticalDash')
 		$HRx = If ($HorizontalDash) {'\x{0:X2}' -f [Int]$HorizontalDash}
 		$VRx = If ($VerticalDash)   {'\x{0:X2}' -f [Int]$VerticalDash}
-		$RulerPattern = If ($VRx) {"^[$HRx$VRx\s]*$HRx[$HRx$VRx\s]*$"} ElseIf ($HRx) {"^[$HRx\s]*$HRx[$HRx\s]*$"} Else {'\A(?!x)x'}
+		$JNx = If ($Junction)       {'\x{0:X2}' -f [Int]$Junction}
+		$ANx = If ($Anchor)         {'\x{0:X2}' -f [Int]$Anchor}
+		$RulerPattern = If ($VRx) {"^[$HRx$VRx$JNx$ANx\s]*$HRx[$HRx$VRx$JNx$ANx\s]*$"} ElseIf ($HRx) {"^[$HRx\s]*$HRx[$HRx\s]*$"} Else {'\A(?!x)x'}
 		If (!$PSBoundParameters.ContainsKey('Ruler') -and $HRx) {Remove-Variable 'Ruler'; $Ruler = $Null}
 		If (!$Ruler -and !$HRx -and !$VRx) {$Ruler = ''}
 		$HeaderLine = If (@($Header).Count -gt 1) {''} ElseIf ($Header) {$Header}
@@ -196,27 +199,22 @@ Function ConvertFrom-SourceTable {
 		Function Null {$Null}; Function True {$True}; Function False {$False};								# Wrappers
 		Function Debug-Column {
 			If ($VRx) {Write-Debug $Mask}
-			Else {Write-Debug (($Mask | ForEach-Object {If ($_) {"$_"} Else {' '}}) -Join '')}
-			$ColumnInfo = For ($i = 0; $i -lt $Columns.Length; $i++) {' '}
-			For ($i = 0; $i -lt $Columns.Length; $i++) {$Column = $Columns[$i]
-				For ($c = $Column.Start + $Padding; $c -le $Column.End - $Padding; $c++) {$ColumnInfo[$c] = '-'}
-				$ColumnInfo[($Column.Start + $Column.End) / 2] = "$i"[-1]
-				If ($Column.Alignment -bAnd [Alignment]::Left)  {$ColumnInfo[$Column.Start + $Padding] = '+'}
-				If ($Column.Alignment -bAnd [Alignment]::Right) {$ColumnInfo[$Column.End - $Padding]   = '+'}
+			Else {Write-Debug (($Mask | ForEach-Object {If ($_) {'{0:x}' -f $_} Else {' '}}) -Join '')}
+			$CharArray = (' ' * ($Columns[-1].End + 1)).ToCharArray()
+ 			For ($i = 0; $i -lt $Columns.Length; $i++) {$Column = $Columns[$i]
+				For ($c = $Column.Start + $Padding; $c -le $Column.End - $Padding; $c++) {$CharArray[$c] = '-'}
+				$CharArray[($Column.Start + $Column.End) / 2] = "$i"[-1]
+				If ($Column.Alignment -bAnd [Alignment]::Left)  {$CharArray[$Column.Start + $Padding] = ':'}
+				If ($Column.Alignment -bAnd [Alignment]::Right) {$CharArray[$Column.End - $Padding]   = ':'}
 			}
-			Write-Debug ($ColumnInfo -Join '')
+			Write-Debug ($CharArray -Join '')
 		}
-		Function Mask([String[]]$Lines) {	# Bit 2: Header and Ruler | Bit 1: Header and Ruler and Data | Bit 0: Header or Ruler or Data
-			ForEach ($Line in $Lines) {
-				$New = $Null -eq $Mask
-				If ($New) {([Ref]$Mask).Value = New-Object Collections.Generic.List[Byte]}
-				For ($i = 0; $i -lt ([Math]::Max($Mask.Count, $Line.Length)); $i++) {
-					If ($i -ge $Mask.Count) {([Ref]$Mask).Value.Add(0)}
-					If ($Line[$i] -Match '\S') {
-						If ($New) {$Mask[$i] = 7}
-						Else {$Mask[$i] = $Mask[$i] -bOr 1}
-					} Else {$Mask[$i] = $Mask[$i] -bAnd 5}
-				}
+		Function Mask([String]$Line, [Byte]$Or = [Mask]::Data) {
+			$Init = [Mask]::All * ($Null -eq $Mask)
+			If ($Init) {([Ref]$Mask).Value = New-Object Collections.Generic.List[Byte]}
+			For ($i = 0; $i -lt ([Math]::Max($Mask.Count, $Line.Length)); $i++) {
+				If ($i -ge $Mask.Count) {([Ref]$Mask).Value.Add($Init)}
+				$Mask[$i] = If ($Line[$i] -Match '\S') {$Mask[$i] -bOr $Or} Else {$Mask[$i] -bAnd (0xFF -bXor [Mask]::All)}
 			}
 		}
 		Function Slice([String]$String, [Int]$Start, [Int]$End = [Int]::MaxValue) {
@@ -294,7 +292,10 @@ $Message
 			}
 			If ($Null -ne $DataIndex) {
 				$HeaderLine = $HeaderLine.TrimEnd()
-				If ($TopLine -NotMatch $VRx) {$VRx = ''}
+				If ($TopLine -NotMatch $VRx) {
+					$VRx = ''
+					If ($Ruler -NotMatch $ANx) {$ANx = ''}
+				}
 				If ($VRx) {
 					$Index = 0; $Start = 0; $Length = $Null; $Padding = [Int]::MaxValue
 					If ($Ruler) {
@@ -311,13 +312,14 @@ $Message
 							$End = $Start + $Length - 1
 							$Padding = [Math]::Min($Padding, $Column.Length - $Column.TrimStart().Length)
 							If ($Ruler -or $End -lt $HeaderLine.Length -1) {$Padding = [Math]::Min($Padding, $Column.Length - $Column.TrimEnd().Length)}
-							$Columns += @{Index = $Index; Name = $Column; Type = $Null; Start = $Start; End = $End; Alignment = [Alignment]::Justified}
+							$Columns += @{Index = $Index; Name = $Column; Type = $Null; Start = $Start; End = $End}
 							$Property.Add($Name, $Null)
 						}
 						$Index++; $Start += $Column.Length + 1
 					}
 					$Mask += '*'
 					ForEach ($Column in $Columns) {
+						$Anchored = $Ruler -and $ANx -and $Ruler -Match $ANx
 						If (!$Ruler) {
 							If ($Column.Start -eq 0) {
 								$Column.Start = [Math]::Max($HeaderLine.Length - $HeaderLine.TrimStart().Length - $Padding, 0)
@@ -328,32 +330,58 @@ $Message
 							}
 						}
 						$Column.Type, $Column.Name = TypeName $Column.Name.Trim()
-						If ($HeaderLine[$Column.Start + $Padding] -NotMatch '\S') {$Column.Alignment = $Column.Alignment -band -bnot [Alignment]::Left}
-						If ($HeaderLine[$Column.End   - $Padding] -NotMatch '\S') {$Column.Alignment = $Column.Alignment -band -bnot [Alignment]::Right}
+						If ($Anchored) {
+							$Column.Alignment = [Alignment]::None
+							If ($Ruler[$Column.Start] -Match $ANx) {$Column.Alignment = $Column.Alignment -bor [Alignment]::Left}
+							If ($Ruler[$Column.End]   -Match $ANx) {$Column.Alignment = $Column.Alignment -bor [Alignment]::Right}
+						} Else {
+							$Column.Alignment = [Alignment]::Justified
+							If ($HeaderLine[$Column.Start + $Padding] -NotMatch '\S') {$Column.Alignment = $Column.Alignment -band -bnot [Alignment]::Left}
+							If ($HeaderLine[$Column.End   - $Padding] -NotMatch '\S') {$Column.Alignment = $Column.Alignment -band -bnot [Alignment]::Right}
+						}
 					}
 				} Else {
-					Mask $HeaderLine, $Ruler
-					$Lines | Select-Object -Skip $DataIndex | Where-Object {$_.Trim()} | Foreach-Object {Mask $_}
+					Mask $HeaderLine ([Mask]::Header)
+					If ($Ruler) {Mask $Ruler ([Mask]::Ruler)}
+				 	$Lines | Select-Object -Skip $DataIndex | Where-Object {$_.Trim()} | Foreach-Object {Mask $_}
+					If (!$Ruler -and $HRx) {									# Connect (rulerless) single spaced headers where either column is empty
+						$InWord = $False; $WordMask = 0
+						For ($i = 0; $i -le $Mask.Count; $i++) {
+							If($i -lt $Mask.Count) {$WordMask = $WordMask -bor $Mask[$i]}
+							$Masked = $i -lt $Mask.Count -and $Mask[$i]
+							If ($Masked -and !$InWord) {$InWord = $True; $Start = $i}
+							ElseIf (!$Masked -and $InWord) {$InWord = $False; $End = $i - 1
+								If ([Mask]::Header -eq $WordMask -bAnd 7) {		# only header
+									If ($Start -ge 2 -and $Mask[$Start - 2] -band [Mask]::Header) {$Mask[$Start - 1] = [Mask]::Header}
+									ElseIf (($End + 2) -lt $Mask.Count -and $Mask[$End + 2] -band [Mask]::Header) {$Mask[$End + 1] = [Mask]::Header}
+								}
+								$WordMask = 0
+							}
+						}
+					}
 					$InWord = $False; $Index = 0; $Start = $Null
 					For ($i = 0; $i -le $Mask.Count; $i++) {
 						$Masked = $i -lt $Mask.Count -and $Mask[$i]
 						If ($Masked -and !$InWord) {$InWord = $True; $Start = $i}
-						ElseIf (!$Masked -and $InWord) {$InWord = $False
-							$End = $i - 1
+						ElseIf (!$Masked -and $InWord) {$InWord = $False; $End = $i - 1
 							$Type, $Name = If (@($Header).Count -le 1) {TypeName "$(Slice -String $HeaderLine -Start $Start -End $End)".Trim()}
 							               ElseIf ($Index -lt @($Header).Count) {TypeName $Header[$Index]}
 							If ($Name) {
-								If ($Type) {$Type = Try {[Type]$Type} Catch {
-									Write-Error -ErrorRecord (ErrorRecord -Line $HeaderLine -Start $Start -End $End -Message (
-										"Unknown type {0} in header at column '{1}'" -f $Type, $Name
-									))
-								}}
-								$Columns += @{Index = $Index++; Name = $Name; Type = $Type; Start = $Start; End = $End; Alignment = $Null}
-								$Property.Add($Name, $Null)
+								If ($Columns.Where{$_.Name -eq $Name}) {Write-Warning "Duplicate column name: $Name."}
+								Else {
+									If ($Type) {$Type = Try {[Type]$Type} Catch {
+										Write-Error -ErrorRecord (ErrorRecord -Line $HeaderLine -Start $Start -End $End -Message (
+											"Unknown type {0} in header at column '{1}'" -f $Type, $Name
+										))
+									}}
+									$Columns += @{Index = $Index++; Name = $Name; Type = $Type; Start = $Start; End = $End; Alignment = $Null}
+									$Property.Add($Name, $Null)
+								}
 							}
 						}
 					}
 				}
+				$RulerPattern = If ($Ruler) {'^' + ($Ruler -Replace "[^$HRx]", "[$VRx$JNx$ANx\s]" -Replace "[$HRx]", "[$HRx]")} Else {'\A(?!x)x'}
 			}
 		}
 		If ($Columns) {
@@ -374,7 +402,8 @@ $Message
 					}
 				}
 			} Else {
-				$Lines | Where-Object {$_.Trim()} | Foreach-Object {Mask $_}
+				$HeadMask = If ($Ruler) {[Mask]::Header -bOr [Mask]::Ruler} Else {[Mask]::Header}
+				$Lines | Select-Object -Skip (0 + $DataIndex) | Where-Object {$_.Trim()} | Foreach-Object {Mask $_}
 				For ($c = 0; $c -lt $Columns.Length; $c++) {$Column = $Columns[$c]
 					$NextRight = If ($c -lt $Columns.Length) {$Columns[$c + 1]}
 					$Margin = If ($NextRight) {$NextRight.Start - 2} Else {$Mask.Count - 1}
@@ -391,16 +420,20 @@ $Message
 					}
 
 					If (!$Column.Alignment) {
-						$IsLeftAligned  = ($Mask[$Column.Start] -bAnd 4) -and !($Mask[$Column.end]   -bAnd 2)
-						$IsRightAligned = ($Mask[$Column.end]   -bAnd 4) -and !($Mask[$Column.Start] -bAnd 2)
-						If ($IsLeftAligned -ne $IsRightAligned) {$Column.Alignment = If ($IsLeftAligned) {[Alignment]::Left} Else {[Alignment]::Right}}
+						$MaskStart = $Mask[$Column.Start];         $MaskEnd = $Mask[$Column.End]
+						$HeadStart = $MaskStart -bAnd $HeadMask;   $HeadEnd = $MaskEnd -bAnd $HeadMask
+						$AllStart  = $MaskStart -bAnd [Mask]::All; $AllEnd  = $MaskEnd -bAnd [Mask]::All
+						$IsLeftAligned  = ($HeadStart -eq $HeadMask -and $HeadEnd -ne $HeadMask) -Or ($AllStart -and !$AllEnd)
+						$IsRightAligned = ($HeadStart -ne $HeadMask -and $HeadEnd -eq $HeadMask) -Or (!$AllStart -and $AllEnd)
+						If ($IsLeftAligned)  {$Column.Alignment = $Column.Alignment -bOr [Alignment]::Left}
+						If ($IsRightAligned) {$Column.Alignment = $Column.Alignment -bOr [Alignment]::Right}
 						If ($Column.Alignment) {If ($c -gt 0) {$c = $c - 2}}
 					}
 				}
 			}
 			If ($DebugPreference -ne 'SilentlyContinue' -and !$RowIndex) {Write-Debug ($HeaderLine -Replace '\s', ' '); Debug-Column}
 			ForEach ($Line in ($Lines | Select-Object -Skip ([Int]$DataIndex))) {
-				If ($Line.Trim() -and ($Line -ne $Ruler)) {
+				If ($Line.Trim() -and ($Line -NotMatch $RulerPattern)) {
 					$RowIndex++
 					If ($DebugPreference -ne 'SilentlyContinue') {Write-Debug ($Line -Replace '\s', ' ')}
 					$Fields = If ($VRx -and $Line -notlike $Mask) {$Line -Split $VRx}
@@ -422,7 +455,7 @@ $Message
 										Try {&([Scriptblock]::Create($Value))}
 										Catch {$Value
 											Write-Error -ErrorRecord (ErrorRecord -Line $Line -Start $Column.Start -End $Column.End -Message (
-												"The expression '{0}' in row {1} at column '{2}' can't be evaluted. Check the syntax or use the -Literal switch." -f $Value, $RowIndex, $Column.Name
+												"The expression '{0}' in row {1} at column '{2}' can't be evaluated. Check the syntax or use the -Literal switch." -f $Value, $RowIndex, $Column.Name
 											))
 										}
 									} ElseIf ($Column.Type) {
