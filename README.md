@@ -11,6 +11,9 @@ which is a string by default.
 
 Data that is right aligned will be evaluated.
 
+Data that is justified (using the full column with) is following the
+the header alignment and evaluated if the header is right aligned.
+
 The default column type can be set by prefixing the column name with
 a standard (PowerShell) cast operator (a data type enclosed in
 square brackets, e.g.: `[Int]ID`)
@@ -150,6 +153,16 @@ If `-VerticalDash` explicitly defined, all (streamed) lines will be
 searched for a header with a vertical dash character.  
 If `-VerticalDash` is set to `$Null`, the first data line is presumed
 the header line (unless the `-HorizontalDash` parameter is set).
+
+`-Junction <Char>`
+The `-Junction` parameter (default: `+`) defines the character used for
+the junction between the horizontal ruler and vertical ruler.
+
+`-Anchorn <Char>`
+The `-Anchor` parameter (default: `:`) defines the character used for
+the alignedment anchor. If used in the header row, it will be used to
+define the default alignment, meaning that justified (full width)
+values will be evaluted.
 
 `-Literal`  
 The -Literal parameter will prevent any right aligned data to be evaluated.
