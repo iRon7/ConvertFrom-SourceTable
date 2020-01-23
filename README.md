@@ -154,11 +154,11 @@ searched for a header with a vertical dash character.
 If `-VerticalDash` is set to `$Null`, the first data line is presumed
 the header line (unless the `-HorizontalDash` parameter is set).
 
-`-Junction <Char>`
+`-Junction <Char>`  
 The `-Junction` parameter (default: `+`) defines the character used for
 the junction between the horizontal ruler and vertical ruler.
 
-`-Anchorn <Char>`
+`-Anchorn <Char>`  
 The `-Anchor` parameter (default: `:`) defines the character used for
 the alignedment anchor. If used in the header row, it will be used to
 define the default alignment, meaning that justified (full width)
