@@ -1695,5 +1695,35 @@ A B    XY   ZY
 			
 		}
 		
+		It 'convert list output to table(object)' { # https://stackoverflow.com/a/60882963/1701026
+		
+			$Table = '
+[ ID] Interval           Transfer     Bandwidth
+[  4]   0.00-1.00   sec  11.4 MBytes  95.4 Mbits/sec                  
+[  4]   1.00-2.00   sec  11.2 MBytes  94.2 Mbits/sec                  
+[  4]   2.00-3.00   sec  11.2 MBytes  94.3 Mbits/sec                  
+[  4]   3.00-4.00   sec  11.2 MBytes  94.5 Mbits/sec                  
+[  4]   4.00-5.00   sec  11.2 MBytes  94.2 Mbits/sec                  
+[  4]   5.00-6.00   sec  11.2 MBytes  94.4 Mbits/sec                  
+[  4]   6.00-7.00   sec  11.2 MBytes  94.4 Mbits/sec                  
+[  4]   7.00-8.00   sec  11.2 MBytes  94.3 Mbits/sec                  
+[  4]   8.00-9.00   sec  11.2 MBytes  94.2 Mbits/sec                  
+[  4]   9.00-10.00  sec  11.2 MBytes  94.5 Mbits/sec'
+		
+			$Actual = $Table | ConvertFrom-SourceTable -Literal -Omit '[]'
+		
+			,$Actual | Differentiate @(
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '0.00-1.00   sec'; 'Transfer' = '11.4 MBytes'; 'Bandwidth' = '95.4 Mbits/sec'},
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '1.00-2.00   sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.2 Mbits/sec'},
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '2.00-3.00   sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.3 Mbits/sec'},
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '3.00-4.00   sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.5 Mbits/sec'},
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '4.00-5.00   sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.2 Mbits/sec'},
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '5.00-6.00   sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.4 Mbits/sec'},
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '6.00-7.00   sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.4 Mbits/sec'},
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '7.00-8.00   sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.3 Mbits/sec'},
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '8.00-9.00   sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.2 Mbits/sec'},
+				[pscustomobject]@{'ID' = '4'; 'Interval' = '9.00-10.00  sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.5 Mbits/sec'}
+			) | Should -Be 0
+		}
 	}
 }
