@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.3.10
+.VERSION 0.3.11
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a fixed column table to objects.
@@ -114,6 +114,10 @@ Function ConvertFrom-SourceTable {
 		define the default alignment, meaning that justified (full width)
 		values will be evaluted.
 
+	.PARAMETER Omit
+		A string of characters to omit from the header and data. Each omitted
+		character will be replaced with a space.
+
 	.PARAMETER Literal
 		The -Literal parameter will prevent any right aligned data to be
 		evaluated.
@@ -193,7 +197,7 @@ Function ConvertFrom-SourceTable {
 	[CmdletBinding()][OutputType([Object[]])]Param (
 		[Parameter(ValueFromPipeLine = $True)][String[]]$InputObject, [String[]]$Header, [String]$Ruler,
 		[Alias("HDash")][Char]$HorizontalDash = '-', [Alias("VDash")][Char]$VerticalDash = '|',
-		[Char]$Junction = '+', [Char]$Anchor = ':', [Switch]$Literal
+		[Char]$Junction = '+', [Char]$Anchor = ':', [String]$Omit, [Switch]$Literal
 	)
 	Begin {
 		Enum Alignment {None; Left; Right; Justified}
@@ -260,6 +264,12 @@ $Message
 	}
 	Process {
 		$Lines = $InputObject -Split '[\r\n]+'
+		If ($Omit) {
+			$Lines = @(ForEach ($Line in $Lines) {
+				ForEach ($Char in [Char[]]$Omit) {$Line = $Line.Replace($Char, ' ')}
+				$Line
+			})
+		}
 		$NextIndex, $DataIndex = $Null
 		If (!$Columns) {
 			For ($Index = 0; $Index -lt $Lines.Length; $Index++) {
