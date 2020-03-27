@@ -49,3 +49,4 @@
 0.3.8     2020-01-20     Connect (rulerless) single spaced headers where either column is empty
 0.3.9     2020-03-27     In -Literal mode type syntax (e.g. [Int]5) are left untouched 
 0.3.10    2020-03-27     Remove preceding empty lines from -Ruler (no here string required)
+0.3.11    2020-03-27     Added -Omit parameter (Each omitted character will be replaced with a space)
