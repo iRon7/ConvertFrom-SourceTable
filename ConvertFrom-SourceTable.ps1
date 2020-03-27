@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.3.8
+.VERSION 0.3.10
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .DESCRIPTION Converts a fixed column table to objects.
@@ -32,6 +32,9 @@ Function ConvertFrom-SourceTable {
 		which is a string by default.
 
 		Data that is right aligned will be evaluated.
+
+		Data that is justified (using the full column with) is following the
+		the header alignment and evaluated if the header is right aligned.
 
 		The default column type can be set by prefixing the column name with
 		a standard (PowerShell) cast operator (a data type enclosed in
@@ -78,7 +81,7 @@ Function ConvertFrom-SourceTable {
 		margins are indefinable.
 
 	.PARAMETER HorizontalDash
-		(Alias -HDash) defines the horizontal ruler character.
+		This parameter (Alias -HDash) defines the horizontal ruler character.
 		By default, each streamed table row (or a total raw table) will be
 		searched for a ruler existing out of horizontal dash characters ("-"),
 		spaces and possible vertical dashes. If the ruler is found, the prior
@@ -91,7 +94,7 @@ Function ConvertFrom-SourceTable {
 		the header line (unless the -VerticalDash parameter is set).
 
 	.PARAMETER VerticalDash
-		(Alias -VDash) defines the vertical ruler character.
+		This parameter (Alias -VDash) defines the vertical ruler character.
 		By default, each streamed table row (or a total raw table) will be
 		searched for a header with vertical dash characters ("|"). If the
 		header is not found within the first streamed data line, the first
@@ -100,6 +103,16 @@ Function ConvertFrom-SourceTable {
 		searched for a header with a vertical dash character.
 		If -VerticalDash is set to `$Null`, the first data line is presumed
 		the header line (unless the -HorizontalDash parameter is set).
+
+	.PARAMETER Junction
+		The -Junction parameter (default: "+") defines the character used for
+		the junction between the horizontal ruler and vertical ruler.
+
+	.PARAMETER Anchor
+		The -Anchor parameter (default: ":") defines the character used for
+		the alignedment anchor. If used in the header row, it will be used to
+		define the default alignment, meaning that justified (full width)
+		values will be evaluted.
 
 	.PARAMETER Literal
 		The -Literal parameter will prevent any right aligned data to be
@@ -193,6 +206,7 @@ Function ConvertFrom-SourceTable {
 		$RulerPattern = If ($VRx) {"^[$HRx$VRx$JNx$ANx\s]*$HRx[$HRx$VRx$JNx$ANx\s]*$"} ElseIf ($HRx) {"^[$HRx\s]*$HRx[$HRx\s]*$"} Else {'\A(?!x)x'}
 		If (!$PSBoundParameters.ContainsKey('Ruler') -and $HRx) {Remove-Variable 'Ruler'; $Ruler = $Null}
 		If (!$Ruler -and !$HRx -and !$VRx) {$Ruler = ''}
+		If ($Ruler) {$Ruler = $Ruler -Split '[\r\n]+' | Where-Object {$_.Trim()} | Select-Object -First 1}
 		$HeaderLine = If (@($Header).Count -gt 1) {''} ElseIf ($Header) {$Header}
 		$TopLine = If ($HeaderLine) {''}; $LastLine, $OuterLeftColumn, $OuterRightColumn, $Mask = $Null; $RowIndex = 0; $Padding = 0; $Columns = @()
 		$Property = New-Object System.Collections.Specialized.OrderedDictionary								# Include support from PSv2
@@ -224,8 +238,13 @@ Function ConvertFrom-SourceTable {
 			} Else {$Null}
 		}
 		Function TypeName([String]$TypeName) {
-			$Null = $TypeName.Trim() -Match '(\[(.*)\])?\s*(.*)'
-			$Matches[2], (&{If($Matches[3]) {$Matches[3]} Else {$Matches[2]}})
+			If ($Literal) {
+				$Null, $TypeName.Trim()
+			} Else {
+				$Null = $TypeName.Trim() -Match '(\[(.*)\])?\s*(.*)'
+				$Matches[2]
+				If($Matches[3]) {$Matches[3]} Else {$Matches[2]}
+			}
 		}
 		Function ErrorRecord($Line, $Start, $End, $Message) {
 			$Exception = New-Object System.InvalidOperationException "
