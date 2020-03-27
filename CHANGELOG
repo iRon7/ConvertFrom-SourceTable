@@ -47,3 +47,5 @@
 0.3.6     2019-10-04     Added -Anchor parameter (default: ":") for tables with alignment anchors
 0.3.7     2020-01-02     Using the first occurrence of a column in case of a duplicate column name
 0.3.8     2020-01-20     Connect (rulerless) single spaced headers where either column is empty
+0.3.9     2020-03-27     In -Literal mode type syntax (e.g. [Int]5) are left untouched 
+0.3.10    2020-03-27     Remove preceding empty lines from -Ruler (no here string required)
