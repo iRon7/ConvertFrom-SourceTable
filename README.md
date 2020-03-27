@@ -164,6 +164,10 @@ the alignedment anchor. If used in the header row, it will be used to
 define the default alignment, meaning that justified (full width)
 values will be evaluted.
 
+`-Omit <String>`  
+A string of characters to omit from the header and data. Each omitted
+character will be replaced with a space.
+
 `-Literal`  
 The -Literal parameter will prevent any right aligned data to be evaluated.
 
