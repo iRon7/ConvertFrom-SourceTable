@@ -21,7 +21,7 @@
 0.1.0     2018-10-31     Ronald Bode Improved algorithms
 0.1.1     2018-11-13     Ronald Bode Added -Ruler parameter to add alignment info
 0.1.2     2018-11-14     Ronald Bode Added -Header parameter to add header info
-0.1.3     2018-11-15     Ronald Bode Added -Literal parameter to prevent any evalutation
+0.1.3     2018-11-15     Ronald Bode Added -Literal parameter to prevent any evaluation
 0.1.4     2018-11-15     Ronald Bode A manual supplied ruler (-Ruler <string>) suppresses all embedded rulers 
 0.1.5     2018-11-16     Ronald Bode Improved performance avoiding regex MaskString
 0.1.6     2018-11-16     Ronald Bode Depleted PSCustomObject alias 'O' and DateTime alias 'D' wrappers
@@ -35,18 +35,19 @@
 0.2.7     2019-07-05     Ronald Bode Fixed bug were the last line contains white spaces and data is floating
 0.2.8     2019-07-19     Ronald Bode Fixed issue were a markdown table has no outer borders
 0.2.9     2019-07-20     Ronald Bode Changed error handling
-0.3.2     2019-10-04     Renamed -HorizontalRuler parameter to -HorizontalDash (alias HDash)
-                         Renamed -VerticalRuler parameter to -VerticalDash (alias VDash)
-                         Depleted -Markdown parameter (use -VerticalDash parameters instead)
-                         Depleted -Floating parameter (use -VerticalDash/-HorizontalDash parameters instead)
-                         Improved (unstructured) table/data recognition algorithm
-                         Support for delimited (non fixed width) CSV files (no support for quoted data)
-0.3.3     2019-10-04     Minor help correction
-0.3.4     2019-10-04     Trimming (string) values in distorted rows
-0.3.5     2019-10-04     Added -Junction parameter (default: "+") for tables with ruler junction characters
-0.3.6     2019-10-04     Added -Anchor parameter (default: ":") for tables with alignment anchors
-0.3.7     2020-01-02     Using the first occurrence of a column in case of a duplicate column name
-0.3.8     2020-01-20     Connect (rulerless) single spaced headers where either column is empty
-0.3.9     2020-03-27     In -Literal mode type syntax (e.g. [Int]5) are left untouched 
-0.3.10    2020-03-27     Remove preceding empty lines from -Ruler (no here string required)
-0.3.11    2020-03-27     Added -Omit parameter (Each omitted character will be replaced with a space)
+0.3.2     2019-10-04     Ronald Bode Renamed -HorizontalRuler parameter to -HorizontalDash (alias HDash)
+                                     Renamed -VerticalRuler parameter to -VerticalDash (alias VDash)
+                                     Depleted -Markdown parameter (use -VerticalDash parameters instead)
+                                     Depleted -Floating parameter (use -VerticalDash/-HorizontalDash parameters instead)
+                                     Improved (unstructured) table/data recognition algorithm
+                                     Support for delimited (non fixed width) CSV files (no support for quoted data)
+0.3.3     2019-10-04     Ronald Bode Minor help correction
+0.3.4     2019-10-04     Ronald Bode Trimming (string) values in distorted rows
+0.3.5     2019-10-04     Ronald Bode Added -Junction parameter (default: "+") for tables with ruler junction characters
+0.3.6     2019-10-04     Ronald Bode Added -Anchor parameter (default: ":") for tables with alignment anchors
+0.3.7     2020-01-02     Ronald Bode Using the first occurrence of a column in case of a duplicate column name
+0.3.8     2020-01-20     Ronald Bode Connect (rulerless) single spaced headers where either column is empty
+0.3.9     2020-03-27     Ronald Bode In -Literal mode type syntax (e.g. [Int]5) are left untouched 
+0.3.10    2020-03-27     Ronald Bode Remove preceding empty lines from -Ruler (no here string required)
+0.3.11    2020-03-27     Ronald Bode Added -Omit parameter (Each omitted character will be replaced with a space)
+0.3.12    2020-07-23     Ronald Bode Fixed bug #2 catch (unaligned) floating data
