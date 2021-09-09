@@ -1,9 +1,10 @@
 #Requires -Modules @{ModuleName="Pester"; ModuleVersion="5.0.0"}
 
-BeforeAll {
-    Set-StrictMode -Version 3
+Set-StrictMode -Version Latest
+Set-Alias ConvertFrom-SourceTable .\ConvertFrom-SourceTable.ps1
 
-    . $PSCommandPath.Replace('.Tests.ps1', '.ps1')
+
+BeforeAll {
 
     Function Differentiate {
         Param (
@@ -1906,3 +1907,4 @@ A B    XY   ZY
         
     }
 }
+
