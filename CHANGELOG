@@ -54,3 +54,4 @@
 0.3.13    2020-07-29     Ronald Bode Minor code improvements
 0.3.14    2020-07-30     Ronald Bode Reformatted code (using https://github.com/DTW-DanWard/PowerShell-Beautifier)
 0.3.15    2020-10-08     Ronald Bode Compliant with Set-StrictMode -Version 3
+0.4.0     2021-09-09     Ronald Bode Function file: No dot-sourcing required, just: .\ConvertFrom-SourceTable.ps1 $Table
