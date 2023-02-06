@@ -252,18 +252,18 @@ Describe 'ConvertFrom-Table' {
         }
 
         It 'Raw table as argument' {
-            $Actual = ConvertFrom-SourceTable $Table
-            ,$Actual | Differentiate $Object
+            $Actual = ConvertFrom-SourceTable -Parse $Table
+            ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Raw table from pipeline' {
-            $Actual = $Table | ConvertFrom-SourceTable
-            ,$Actual | Differentiate $Object
+            $Actual = $Table | ConvertFrom-SourceTable -Parse
+            ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Streamed table lines from pipeline' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
-            ,$Actual | Differentiate $Object
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Parse
+            ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
     
@@ -296,17 +296,17 @@ Describe 'ConvertFrom-Table' {
         }
 
         It 'Raw table as argument' {
-            $Actual = ConvertFrom-SourceTable $Table
+            $Actual = ConvertFrom-SourceTable $Table -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Raw table from pipeline' {
-            $Actual = $Table | ConvertFrom-SourceTable
+            $Actual = $Table | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Streamed table lines from pipeline' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
@@ -337,17 +337,17 @@ Describe 'ConvertFrom-Table' {
         }
 
         It 'Raw table as argument' {
-            $Actual = ConvertFrom-SourceTable $Table
+            $Actual = ConvertFrom-SourceTable $Table -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Raw table from pipeline' {
-            $Actual = $Table | ConvertFrom-SourceTable
+            $Actual = $Table | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Streamed table lines from pipeline' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
@@ -381,17 +381,17 @@ Describe 'ConvertFrom-Table' {
         }
 
         It 'Raw table as argument' {
-            $Actual = ConvertFrom-SourceTable $Table
+            $Actual = ConvertFrom-SourceTable $Table -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Raw table from pipeline' {
-            $Actual = $Table | ConvertFrom-SourceTable
+            $Actual = $Table | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Streamed table lines from pipeline' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
@@ -538,17 +538,17 @@ Describe 'ConvertFrom-Table' {
         }
         
         It 'Raw table as argument' {
-            $Actual = ConvertFrom-SourceTable $Table
+            $Actual = ConvertFrom-SourceTable $Table -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Raw table from pipeline' {
-            $Actual = $Table | ConvertFrom-SourceTable
+            $Actual = $Table | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Streamed table lines from pipeline' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
@@ -571,17 +571,17 @@ Describe 'ConvertFrom-Table' {
         }
         
         It 'Raw table as argument' {
-            $Actual = ConvertFrom-SourceTable $Table
+            $Actual = ConvertFrom-SourceTable -Parse $Table
             ,$Actual | Differentiate $Object
         }
 
         It 'Raw table from pipeline' {
-            $Actual = $Table | ConvertFrom-SourceTable
+            $Actual = $Table | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object
         }
 
         It 'Streamed table lines from pipeline' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object
         }
     }
@@ -606,17 +606,17 @@ Describe 'ConvertFrom-Table' {
         }
         
         It 'Raw table as argument' {
-            $Actual = ConvertFrom-SourceTable $Table
+            $Actual = ConvertFrom-SourceTable $Table -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Raw table from pipeline' {
-            $Actual = $Table | ConvertFrom-SourceTable
+            $Actual = $Table | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Streamed table lines from pipeline' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
@@ -643,22 +643,22 @@ Describe 'ConvertFrom-Table' {
         }
         
         It 'Raw table as argument' {
-            $Actual = ConvertFrom-SourceTable $Table
+            $Actual = ConvertFrom-SourceTable $Table -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Raw table from pipeline' {
-            $Actual = $Table | ConvertFrom-SourceTable
+            $Actual = $Table | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Streamed table lines from pipeline' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
 
-    Context 'Literal directory list' {
+    Context 'directory list' {
 
         BeforeAll {
             $Table = '
@@ -675,17 +675,17 @@ Describe 'ConvertFrom-Table' {
         }
         
         It 'Raw table as argument' {
-            $Actual = ConvertFrom-SourceTable -Literal $Table
+            $Actual = ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Raw table from pipeline' {
-            $Actual = $Table | ConvertFrom-SourceTable -Literal
+            $Actual = $Table | ConvertFrom-SourceTable
             ,$Actual | Differentiate $Object | Should -Be 0
         }
 
         It 'Streamed table lines from pipeline' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -Literal
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
@@ -937,7 +937,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Left - Center - Left' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1     C2   C3
                 Left Center Left
             '
@@ -949,7 +949,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Left - Center - Left' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1     C2      C3
                 Left Center Right
             '
@@ -961,7 +961,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Left - Center - Center' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1     C2     C3
                 Left Center Center
             '
@@ -973,7 +973,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Right - Center - Left' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                    C1   C2   C3
                 Right Center Left
             '
@@ -985,7 +985,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Right - Center - Right' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                    C1   C2      C3
                 Right Center Right
             '
@@ -997,7 +997,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Right - Center - Center' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                    C1   C2     C3
                 Right Center Center
             '
@@ -1009,7 +1009,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Center - Center - Left' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                   C1     C2   C3
                 Center Center Left
             '
@@ -1021,7 +1021,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Center - Center - Right' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                   C1     C2      C3
                 Center Center Right
             '
@@ -1033,7 +1033,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Center - Center - Center' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                   C1     C2     C3
                 Center Center Center
             '
@@ -1048,7 +1048,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Left aligned by (otherwise) data indent' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1   C2
                 --   --
                 1  2 1  2
@@ -1060,7 +1060,7 @@ Describe 'ConvertFrom-Table' {
         
         It 'Left aligned by extended ruler' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1    C2
                 ---   ---
                 11  2 11  2
@@ -1072,7 +1072,7 @@ Describe 'ConvertFrom-Table' {
         
         It 'Left aligned by indented ruler' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1   C2
                 -    -
                 11 2 11 2
@@ -1084,7 +1084,7 @@ Describe 'ConvertFrom-Table' {
         
         It 'Left aligned by extended data' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1    C2
                 --    --
                 111 2 111 2
@@ -1096,7 +1096,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Left aligned (to be implemented)' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1   C2
                 --   --
                 11 2 11 2
@@ -1108,7 +1108,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Right aligned by (otherwise) data indent' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                   C1   C2
                   --   --
                 1  2 1  2
@@ -1120,7 +1120,7 @@ Describe 'ConvertFrom-Table' {
         
         It 'Right aligned by extended ruler' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                    C1    C2
                   ---   ---
                 1  22 1  22
@@ -1132,7 +1132,7 @@ Describe 'ConvertFrom-Table' {
         
         It 'Right aligned by indented ruler' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                   C1   C2
                    -    -
                 1 22 1 22
@@ -1144,7 +1144,7 @@ Describe 'ConvertFrom-Table' {
         
         It 'Right aligned by extended data' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                    C1    C2
                    --    --
                 1 222 1 222
@@ -1156,7 +1156,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Right aligned (to be implemented)' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                   C1   C2
                   --   --
                 1 22 1 22
@@ -1169,7 +1169,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Mixed alignment (determind by spaces)' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                   C1 C2
                   -- --
                 1  2 1  2
@@ -1181,7 +1181,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Conflicting alignment' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1     C2
                 --     --
                 1  2 1  2
@@ -1193,7 +1193,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Indefinable alignment' {
             
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 C1     C2
                 --     --
                 11 2 1 22
@@ -1205,7 +1205,7 @@ Describe 'ConvertFrom-Table' {
 
         It 'Fixing indefinable alignment with ruler parameter' {
             
-$Actual = ConvertFrom-SourceTable -Literal -Ruler '    ---- ----' '
+$Actual = ConvertFrom-SourceTable -Ruler '    ---- ----' '
     C1     C2
     --     --
     11 2 1 22
@@ -1217,7 +1217,7 @@ $Actual = ConvertFrom-SourceTable -Literal -Ruler '    ---- ----' '
         
         It 'Fixing headerless indefinable alignment with header and ruler parameter' {
             
-$Actual = ConvertFrom-SourceTable -Literal -Header '    C1     C2' -Ruler '    ---- ----' '
+$Actual = ConvertFrom-SourceTable -Header '    C1     C2' -Ruler '    ---- ----' '
     11 2 1 22
 '
             
@@ -1311,7 +1311,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
 
         It 'Right aligned' {
         
-            $Actual = ConvertFrom-SourceTable '
+            $Actual = ConvertFrom-SourceTable -Parse '
                    Color
                    -----
                    "Red"
@@ -1364,7 +1364,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
 
         It 'Right aligned' {
         
-            $Actual = ConvertFrom-SourceTable '
+            $Actual = ConvertFrom-SourceTable -Parse '
                 |----------|
                 |    Color |
                 |----------|
@@ -1403,7 +1403,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
 
         It 'Right aligned' {
         
-            $Actual = ConvertFrom-SourceTable '
+            $Actual = ConvertFrom-SourceTable -Parse '
                 |--------|
                 |   Color|
                 |--------|
@@ -1729,7 +1729,7 @@ A B    XY   ZY
 
             It 'Here table without ruler with spaces in header' {
 
-                $Actual = ConvertFrom-SourceTable -Literal '
+                $Actual = ConvertFrom-SourceTable '
  USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
  a2270725-3                               13  Disc      2+00:17  7/2/2019 1:50 PM
  a2232655-3                               14  Disc      4+09:54  7/1/2019 2:10 AM
@@ -1857,7 +1857,7 @@ A B    XY   ZY
 [  4]   8.00-9.00   sec  11.2 MBytes  94.2 Mbits/sec                  
 [  4]   9.00-10.00  sec  11.2 MBytes  94.5 Mbits/sec'
             
-                $Actual = $Table | ConvertFrom-SourceTable -Literal -Omit '[]'
+                $Actual = $Table | ConvertFrom-SourceTable -Omit '[]'
             
                 ,$Actual | Differentiate @(
                     [pscustomobject]@{'ID' = '4'; 'Interval' = '0.00-1.00   sec'; 'Transfer' = '11.4 MBytes'; 'Bandwidth' = '95.4 Mbits/sec'},
@@ -1876,7 +1876,7 @@ A B    XY   ZY
         
         It '#2 Losing certain columns' {
         
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                 ID     Done       Have  ETA           Up    Down  Ratio  Status       Name
                    1   100%   17.34 MB  Unknown      0.0     0.0    0.0  Idle         BitComet Stable (build 1.69.7.8)
                    2    31%   14.54 GB  50 min    1533.0  9600.0    0.0  Up & Down    [BeanSub&VCB-Studio] Vinland Saga [Ma10p_1080p]
@@ -1890,7 +1890,7 @@ A B    XY   ZY
                 [pscustomobject]@{'ID' = '4'; 'Done' = '7%'; 'Have' = '353.4 MB'; 'ETA' = '1 hrs'; 'Up' = '0.0'; 'Down' = '2285.0'; 'Ratio' = '0.0'; 'Status' = 'Downloading'; 'Name' = '[Sakurato.sub][Kakushigoto][01-12 END][CHT][1080P]'}
             ) | Should -Be 0
 
-            $Actual = ConvertFrom-SourceTable -Literal '
+            $Actual = ConvertFrom-SourceTable '
                Done  ID        Have  ETA           Up    Down  Ratio  Status       Name
                100%     1  17.34 MB  Unknown      0.0     0.0    0.0  Idle         BitComet Stable (build 1.69.7.8)
                 31%     2  14.54 GB  50 min    1533.0  9600.0    0.0  Up & Down    [BeanSub&VCB-Studio] Vinland Saga [Ma10p_1080p]
@@ -1907,4 +1907,3 @@ A B    XY   ZY
         
     }
 }
-
