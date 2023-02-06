@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 0.4.0
+.VERSION 0.5.0
 .GUID 0019a810-97ea-4f9a-8cd5-4babecdc916b
 .AUTHOR iRon
 .COMPANYNAME
@@ -17,49 +17,37 @@
 
 <#
     .SYNOPSIS
-    Converts a fixed column table to objects.
+        Converts a fixed column table to objects.
 
     .DESCRIPTION
-    The ConvertFrom-SourceTable cmdlet creates objects from a fixed column
-    source table (format-table) possibly surrounded by horizontal and/or
-    vertical rulers. The ConvertFrom-SourceTable cmdlet supports most data
-    types using the following formatting and alignment rules:
+        The [ConvertFrom-SourceTable] cmdlet creates objects from a fixed column
+        source table possibly surrounded by horizontal and/or vertical rulers.
 
-        Data that is left aligned will be parsed to the generic column type
-        which is a string by default.
+        **Definitions:**
 
-        Data that is right aligned will be evaluated.
+        * The width of a source table column is outlined by the header width,
+          the ruler width and the width of the data.
 
-        Data that is justified (using the full column with) is following the
-        the header alignment and evaluated if the header is right aligned.
+        * Column and Data alignment (none, left, right or justified) is defined
+          by the existence of any (non-separator) character at the start or end
+          of a column.
 
-        The default column type can be set by prefixing the column name with
-        a standard (PowerShell) cast operator (a data type enclosed in
-        square brackets, e.g.: "[Int]ID")
-
-    Definitions:
-        The width of a source table column is outlined by the header width,
-        the ruler width and the width of the data.
-
-        Column and Data alignment (none, left, right or justified) is defined
-        by the existence of a character at the start or end of a column.
-
-        Column alignment (which is used for a default field alignment) is
-        defined by the first and last character or space of the header and
-        the ruler of the outlined column.
+        * Column alignment (which is used for a default field alignment) is
+          defined by the first and last character or space of the header and
+          the ruler of the outlined column.
 
     .PARAMETER InputObject
         Specifies the source table strings to be converted to objects.
         Enter a variable that contains the source table strings or type a
         command or expression that gets the source table strings.
-        You can also pipe the source table strings to ConvertFrom-SourceTable.
+        You might also pipe the source table strings to [ConvertFrom-SourceTable].
 
         Note that streamed table rows are intermediately processed and
         released for the next cmdlet. In this mode, there is a higher
         possibility that floating tables or column data cannot be determined
         to be part of a specific column (as there is no overview of the table
-        data that follows). To resolve this, use one of the folowing ruler or
-        header specific parameters.
+        data that follows). To resolve this, provide all rows in once or use
+        one of the following [-Header] and/or [-Ruler] parameters.
 
     .PARAMETER Header
         A string that defines the header line of an headless table or a multiple
@@ -78,123 +66,162 @@
         margins are indefinable.
 
     .PARAMETER HorizontalDash
-        This parameter (Alias -HDash) defines the horizontal ruler character.
+        This parameter (Alias `-HDash`) defines the horizontal ruler character.
         By default, each streamed table row (or a total raw table) will be
-        searched for a ruler existing out of horizontal dash characters ("-"),
+        searched for a ruler existing out of horizontal dash characters (`-`),
         spaces and possible vertical dashes. If the ruler is found, the prior
         line is presumed to be the header. If the ruler is not found within
         the first (two) streamed data lines, the first line is presumed the
         header line.
-        If -HorizontalDash explicitly defined, all (streamed) lines will be
+        If `-HorizontalDash` explicitly defined, all (streamed) lines will be
         searched for a matching ruler.
-        If -HorizontalDash is set to `$Null`, the first data line is presumed
-        the header line (unless the -VerticalDash parameter is set).
+        If `-HorizontalDash` is set to `$Null`, the first data line is presumed
+        the header line (unless the [-VerticalDash] parameter is set).
 
     .PARAMETER VerticalDash
-        This parameter (Alias -VDash) defines the vertical ruler character.
+        This parameter (Alias `-VDash`) defines the vertical ruler character.
         By default, each streamed table row (or a total raw table) will be
-        searched for a header with vertical dash characters ("|"). If the
+        searched for a header with vertical dash characters (`|`). If the
         header is not found within the first streamed data line, the first
         line is presumed the header line.
-        If -VerticalDash explicitly defined, all (streamed) lines will be
+        If `-VerticalDash` explicitly defined, all (streamed) lines will be
         searched for a header with a vertical dash character.
-        If -VerticalDash is set to `$Null`, the first data line is presumed
-        the header line (unless the -HorizontalDash parameter is set).
+        If `-VerticalDash` is set to `$Null`, the first data line is presumed
+        the header line (unless the [-HorizontalDash] parameter is set).
 
     .PARAMETER Junction
         The -Junction parameter (default: "+") defines the character used for
         the junction between the horizontal ruler and vertical ruler.
 
     .PARAMETER Anchor
-        The -Anchor parameter (default: ":") defines the character used for
-        the alignedment anchor. If used in the header row, it will be used to
+        The -Anchor parameter (default: `:`) defines the character used for
+        the alignment anchor. If used in the header row, it will be used to
         define the default alignment, meaning that justified (full width)
-        values will be evaluted.
+        values will be parsed.
 
     .PARAMETER Omit
         A string of characters to omit from the header and data. Each omitted
         character will be replaced with a space.
 
-    .PARAMETER Literal
-        The -Literal parameter will prevent any right aligned data to be
-        evaluated.
+    .PARAMETER ParseRightAligned
+        This parameter will cause any right aligned data to be parsed according
+        to the following formatting and alignment rules:
+
+        * Data that is left aligned will be parsed to the generic column type
+          which is a string by default.
+
+        * Data that is right aligned will be parsed.
+
+        * Data that is justified (using the full column with) is following the
+          the header alignment and parsed if the header is right aligned.
+
+        * The default column type can be set by prefixing the column name with
+          a standard (PowerShell) cast operator (a data type enclosed in
+          square brackets, e.g.: `[Int]ID`)
+
+        #### Caution
+
+        Take reasonable precautions when using the `-ParseRightAligned` parameter
+        in scripts. When using the `-ParseRightAligned` parameter to convert data
+        from a table, verify that the data is safe to be parsed before running it.
 
     .EXAMPLE
+        # Restore objects from a Format-Table output
 
-        $Colors = ConvertFrom-SourceTable '
-        Name       Value         RGB
-        ----       -----         ---
-        Black   0x000000       0,0,0
-        White   0xFFFFFF 255,255,255
-        Red     0xFF0000     255,0,0
-        Lime    0x00FF00     0,255,0
-        Blue    0x0000FF     0,0,255
-        Yellow  0xFFFF00   255,255,0
-        Cyan    0x00FFFF   0,255,255
-        Magenta 0xFF00FF   255,0,255
-        Silver  0xC0C0C0 192,192,192
-        Gray    0x808080 128,128,128
-        Maroon  0x800000     128,0,0
-        Olive   0x808000   128,128,0
-        Green   0x008000     0,128,0
-        Purple  0x800080   128,0,128
-        Teal    0x008080   0,128,128
-        Navy    0x000080     0,0,128
-        '
+        The following loads the file properties from general PowerShell output table:
 
-        PS C:\> $Colors | Where {$_.Name -eq "Red"}
+            $Files = ConvertFrom-SourceTable '
+            Mode                LastWriteTime         Length Name
+            ----                -------------         ------ ----
+            d----l       11/16/2018   8:30 PM                Archive
+            -a---l        5/22/2018  12:05 PM          (726) Build-Expression.ps1
+            -a---l       11/16/2018   7:38 PM           2143 CHANGELOG
+            -a---l       11/17/2018  10:42 AM          14728 ConvertFrom-SourceTable.ps1
+            -a---l       11/17/2018  11:04 AM          23909 ConvertFrom-SourceTable.Tests.ps1
+            -a---l         8/4/2018  11:04 AM         (6237) Import-SourceTable.ps1'
 
-        Name    Value RGB
-        ----    ----- ---
-        Red  16711680 {255, 0, 0}
+        > Note that it is generally not a good practice to use console output cmdlets
+        > as e.g. [Format-Table] for anything else than displaying the results.
 
     .EXAMPLE
+        # Convert from a markdown table
 
-        $Employees = ConvertFrom-SourceTable '
-        | Department  | Name    | Country |
-        | ----------- | ------- | ------- |
-        | Sales       | Aerts   | Belgium |
-        | Engineering | Bauer   | Germany |
-        | Sales       | Cook    | England |
-        | Engineering | Duval   | France  |
-        | Marketing   | Evans   | England |
-        | Engineering | Fischer | Germany |
-        '
+        The following command loads a list of employee objects from a markdown table:
 
-    .EXAMPLE
-
-        $ChangeLog = ConvertFrom-SourceTable '
-        [Version] [DateTime]Date Author      Comments
-        --------- -------------- ------      --------
-        0.0.10    2018-05-03     Ronald Bode First design
-        0.0.20    2018-05-09     Ronald Bode Pester ready version
-        0.0.21    2018-05-09     Ronald Bode removed support for String[] types
-        0.0.22    2018-05-24     Ronald Bode Better "right aligned" definition
-        0.0.23    2018-05-25     Ronald Bode Resolved single column bug
-        0.0.24    2018-05-26     Ronald Bode Treating markdown table input as an option
-        0.0.25    2018-05-27     Ronald Bode Resolved error due to blank top lines
-        '
+            $Employees = ConvertFrom-SourceTable '
+            | Department  | Name    | Country |
+            | ----------- | ------- | ------- |
+            | Sales       | Aerts   | Belgium |
+            | Engineering | Bauer   | Germany |
+            | Sales       | Cook    | England |
+            | Engineering | Duval   | France  |
+            | Marketing   | Evans   | England |
+            | Engineering | Fischer | Germany |'
 
     .EXAMPLE
+        # Parse right aligned data
 
-        $Files = ConvertFrom-SourceTable -Literal '
-        Mode                LastWriteTime         Length Name
-        ----                -------------         ------ ----
-        d----l       11/16/2018   8:30 PM                Archive
-        -a---l        5/22/2018  12:05 PM          (726) Build-Expression.ps1
-        -a---l       11/16/2018   7:38 PM           2143 CHANGELOG
-        -a---l       11/17/2018  10:42 AM          14728 ConvertFrom-SourceTable.ps1
-        -a---l       11/17/2018  11:04 AM          23909 ConvertFrom-SourceTable.Tests.ps1
-        -a---l         8/4/2018  11:04 AM         (6237) Import-SourceTable.ps1
-        '
+        In the following example each item in the (hexadecimal) `Value` column will be parsed
+        to integer value and each item in the `RGB` column to an array with three values.
+
+            $Colors = ConvertFrom-SourceTable -Parse '
+            Name       Value         RGB
+            ----       -----         ---
+            Black   0x000000       0,0,0
+            White   0xFFFFFF 255,255,255
+            Red     0xFF0000     255,0,0
+            Lime    0x00FF00     0,255,0
+            Blue    0x0000FF     0,0,255
+            Yellow  0xFFFF00   255,255,0
+            Cyan    0x00FFFF   0,255,255
+            Magenta 0xFF00FF   255,0,255
+            Silver  0xC0C0C0 192,192,192
+            Gray    0x808080 128,128,128
+            Maroon  0x800000     128,0,0
+            Olive   0x808000   128,128,0
+            Green   0x008000     0,128,0
+            Purple  0x800080   128,0,128
+            Teal    0x008080   0,128,128
+            Navy    0x000080     0,0,128'
+
+            $Colors | Where {$_.Name -eq "Red"}
+
+            Name    Value RGB
+            ----    ----- ---
+            Red  16711680 {255, 0, 0}
+
+    .EXAMPLE
+        # Custom column types
+
+        In the following example each item in the first column is casted to a `version` object
+        and each item in the second column to a `datetime` object.\
+        Notice that the type name is used as a property name in case column name is omitted.
+
+            $ChangeLog = ConvertFrom-SourceTable -Parse '
+            [Version] [DateTime]Date Author      Comments
+            --------- -------------- ------      --------
+            0.0.10    2018-05-03     Ronald Bode First design
+            0.0.20    2018-05-09     Ronald Bode Pester ready version
+            0.0.21    2018-05-09     Ronald Bode removed support for String[] types
+            0.0.22    2018-05-24     Ronald Bode Better "right aligned" definition
+            0.0.23    2018-05-25     Ronald Bode Resolved single column bug
+            0.0.24    2018-05-26     Ronald Bode Treating markdown table input as an option
+            0.0.25    2018-05-27     Ronald Bode Resolved error due to blank top lines'
 
     .LINK
-        Online Version: https://github.com/iRon7/ConvertFrom-SourceTable
+        https://github.com/iRon7/ConvertFrom-SourceTable
 #>
 [CmdletBinding()][OutputType([Object[]])] param(
-    [Parameter(ValueFromPipeLine = $True)] [String[]]$InputObject,[String[]]$Header,[string]$Ruler,
-    [Alias("HDash")] [char]$HorizontalDash = '-',[Alias("VDash")] [char]$VerticalDash = '|',
-    [char]$Junction = '+',[char]$Anchor = ':',[string]$Omit,[switch]$Literal
+    [Parameter(ValueFromPipeLine = $True)] [String[]]$InputObject,
+    [String[]]$Header,
+    [string]$Ruler,
+    [Alias("HDash")] [char]$HorizontalDash = '-',
+    [Alias("VDash")] [char]$VerticalDash = '|',
+    [char]$Junction = '+',
+    [char]$Anchor = ':',
+    [string]$Omit,
+    [switch]$ParseRightAligned,
+    [ValidateScript({ Throw [System.Management.Automation.ValidationMetadataException]'The -Literal parameter is depreciated and enabled by default, use -ParseRightAligned to disable.' })][switch]$Literal
 )
 begin {
     enum Alignment{ None; Left; Right; Justified }
@@ -241,12 +268,12 @@ begin {
         } else { $Null }
     }
     function TypeName ([string]$TypeName) {
-        if ($Literal) {
-            $Null,$TypeName.Trim()
-        } else {
+        if ($ParseRightAligned) {
             $Null = $TypeName.Trim() -match '(\[(.*)\])?\s*(.*)'
             $Matches[2]
             if ($Matches[3]) { $Matches[3] } else { $Matches[2] }
+        } else {
+            $Null,$TypeName.Trim()
         }
     }
     function ErrorRecord ($Line,$Start,$End,$Message) {
@@ -540,7 +567,7 @@ process {
                         if ($Field -is [string]) {
                             $Tail = $Field.TrimStart()
                             $Value = $Tail.TrimEnd()
-                            if (!$Literal -and $Value -gt '') {
+                            if ($ParseRightAligned -and $Value -gt '') {
                                 $IsLeftAligned = $Field.Length - $Tail.Length -eq $Padding
                                 $IsRightAligned = $Tail.Length - $Value.Length -eq $Padding
                                 $Alignment = if ($IsLeftAligned -ne $IsRightAligned) {
@@ -550,7 +577,7 @@ process {
                                     try { & ([scriptblock]::Create($Value)) }
                                     catch { $Value
                                         Write-Error -ErrorRecord (ErrorRecord -Line $Line -Start $Column.Start -End $Column.End -Message (
-                                                "The expression '{0}' in row {1} at column '{2}' can't be evaluated. Check the syntax or use the -Literal switch." -f $Value,$RowIndex,$Column.Name
+                                                "The expression '{0}' in row {1} at column '{2}' can't be parsed." -f $Value,$RowIndex,$Column.Name
                                             ))
                                     }
                                 } elseif ($Column.Type) {
@@ -571,4 +598,3 @@ process {
         if ($DebugPreference -ne 'SilentlyContinue' -and $RowIndex) { Debug-Column }
     }
 }
-
