@@ -57,3 +57,4 @@
 0.4.0     2021-09-09     Ronald Bode Function file: No dot-sourcing required, just: .\ConvertFrom-SourceTable.ps1 $Table
 0.4.1     2023-02-01     Ronald Bode Updated inline help for: Get-MarkdownHelp
 0.5.0     2023-02-06     Ronald Bode Implemented #7 -ParseRightAligned option (break change)
+0.5.1     2024-10-30     Ronald Bode Implemented #9 Suppress columns with empty -Header name
