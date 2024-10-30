@@ -168,9 +168,9 @@ If the header contains multiple strings, each string will be used to
 define the property names of each object. In this case, column alignment
 is based on the rest of the data and possible ruler.
 
-[!TIP]
-To skip a column, set the header name of the concerned column index to
-an empty string (or `$Null`).
+> [!TIP]
+> To skip a column, set the header name of the concerned column index to
+> an empty string (or `$Null`).
 
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.String[]">String[]</a></td></tr>
