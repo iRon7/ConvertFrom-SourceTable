@@ -160,9 +160,9 @@ BeforeAll {
 }
 
 Describe 'ConvertFrom-Table' {
-    
+
     Context 'Simple string table' {
-    
+
         BeforeAll {
             $Table = '
                 Department  Name    Country
@@ -192,9 +192,9 @@ Describe 'ConvertFrom-Table' {
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
-    
+
     Context 'Markdown table' {
-    
+
         BeforeAll {
             $Table = '
                 | Department  | Name    | Country |
@@ -224,7 +224,7 @@ Describe 'ConvertFrom-Table' {
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
-    
+
     Context 'Color table with casted values' {
 
         BeforeAll {
@@ -266,9 +266,9 @@ Describe 'ConvertFrom-Table' {
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
-    
+
     Context 'Markdown color table with casted values' {
-        
+
         BeforeAll {
             $Table = '
                 |---------|----------|---------------|
@@ -312,7 +312,7 @@ Describe 'ConvertFrom-Table' {
     }
 
     Context 'Color table with only vertical rulers and casted values' {
-        
+
         BeforeAll {
             $Table = '
                 | Name    |    Value |           RGB |
@@ -353,7 +353,7 @@ Describe 'ConvertFrom-Table' {
     }
 
     Context 'Markdown color table with junction characters' {
-        
+
         BeforeAll {
             $Table = '
                 +---------+----------+---------------+
@@ -397,7 +397,7 @@ Describe 'ConvertFrom-Table' {
     }
 
     Context 'Table without Ruler' {
-    
+
         BeforeAll {
             $Table = '
                 Department  Name    Country
@@ -426,9 +426,9 @@ Describe 'ConvertFrom-Table' {
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
-    
+
     Context 'Markdown table without ruler' {
-    
+
         BeforeAll {
             $Table = '
                 | Department  | Name    | Country |
@@ -441,7 +441,7 @@ Describe 'ConvertFrom-Table' {
             '
             $Object = $SimpleObject
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
@@ -459,7 +459,7 @@ Describe 'ConvertFrom-Table' {
     }
 
     Context 'Markdown table without ruler and side borders' {
-    
+
         BeforeAll {
             $Table = '
                 Department  | Name    | Country
@@ -472,7 +472,7 @@ Describe 'ConvertFrom-Table' {
             '
             $Object = $SimpleObject
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
@@ -490,7 +490,7 @@ Describe 'ConvertFrom-Table' {
     }
 
     Context 'CSV file' {
-    
+
         BeforeAll {
             $Table = '
     Department,Name,Country
@@ -503,7 +503,7 @@ Describe 'ConvertFrom-Table' {
             '
             $Object = $SimpleObject
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable -VDash ',' $Table
             ,$Actual | Differentiate $Object | Should -Be 0
@@ -519,7 +519,7 @@ Describe 'ConvertFrom-Table' {
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
-    
+
     Context 'Version table with default column types' {
 
         BeforeAll {
@@ -536,7 +536,7 @@ Describe 'ConvertFrom-Table' {
             '
             $Object = $VersionObject
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable $Table -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
@@ -552,9 +552,9 @@ Describe 'ConvertFrom-Table' {
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
-    
+
     Context '(Narrow) markdown version table with and default column types' {
-        
+
         BeforeAll {
             $Table = '
                 [Version]|[DateTime]Date|Author     |Comments
@@ -569,7 +569,7 @@ Describe 'ConvertFrom-Table' {
             '
             $Object = $VersionObject
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable -Parse $Table
             ,$Actual | Differentiate $Object
@@ -604,7 +604,7 @@ Describe 'ConvertFrom-Table' {
             '
             $Object = $TypeObject
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable $Table -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
@@ -641,7 +641,7 @@ Describe 'ConvertFrom-Table' {
             '
             $Object = $TypeObject
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable $Table -Parse
             ,$Actual | Differentiate $Object | Should -Be 0
@@ -673,7 +673,7 @@ Describe 'ConvertFrom-Table' {
             '
             $Object = $DirObject
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
@@ -689,8 +689,8 @@ Describe 'ConvertFrom-Table' {
             ,$Actual | Differentiate $Object | Should -Be 0
         }
     }
-    
-    
+
+
     Context 'Floating table with horizontal ruler' {
 
         BeforeAll {
@@ -698,7 +698,7 @@ Describe 'ConvertFrom-Table' {
 
                 Information
                 on the table
-                
+
                 Name  Value
                 ----  -----
                 Black     0
@@ -706,7 +706,7 @@ Describe 'ConvertFrom-Table' {
 
             '
         }
-        
+
         It 'Raw table, floating: AUTO' {
             $Actual = ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate @(
@@ -722,7 +722,7 @@ Describe 'ConvertFrom-Table' {
                 [PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
             ) | Should -Be 0
         }
-    
+
         It 'Raw table, floating: OFF' {
             $Actual = ConvertFrom-SourceTable $Table -HorizontalDash $Null -VerticalDash $Null
             ,$Actual | Differentiate @(
@@ -733,7 +733,7 @@ Describe 'ConvertFrom-Table' {
                 [PSCustomObject]@{'Information' = 'White   255'}
             ) | Should -Be 0
         }
-    
+
         It 'Streamed table lines, floating: AUTO' {
             $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
             ,$Actual | Differentiate @(
@@ -752,9 +752,9 @@ Describe 'ConvertFrom-Table' {
                 [PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
             ) | Should -Be 0
         }
-    
+
         It 'Streamed table lines, floating: OFF' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -HorizontalDash $Null -VerticalDash $Null 
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -HorizontalDash $Null -VerticalDash $Null
             ,$Actual | Differentiate @(
                 [PSCustomObject]@{'Information' = 'on the table'}
                 [PSCustomObject]@{'Information' = 'Name  Value'}
@@ -764,22 +764,22 @@ Describe 'ConvertFrom-Table' {
             ) | Should -Be 0
         }
     }
-    
+
     Context 'Floating table with vertical ruler' {
-        
+
         BeforeAll {
             $Table = '
 
                 Information
                 on the table
-                
+
                 Name  | Value
                 Black |     0
                 White |   255
 
             '
         }
-        
+
         It 'Raw table, floating: AUTO' {
             $Actual = ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate @(
@@ -795,7 +795,7 @@ Describe 'ConvertFrom-Table' {
                 [PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
             ) | Should -Be 0
         }
-    
+
         It 'Raw table, floating: OFF' {
             $Actual = ConvertFrom-SourceTable $Table -HorizontalDash $Null -VerticalDash $Null
             ,$Actual | Differentiate @(
@@ -805,7 +805,7 @@ Describe 'ConvertFrom-Table' {
                 [PSCustomObject]@{'Information' = 'White |   255'}
             ) | Should -Be 0
         }
-    
+
         It 'Streamed table lines, floating: AUTO' {
             $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
             ,$Actual | Differentiate @(
@@ -823,9 +823,9 @@ Describe 'ConvertFrom-Table' {
                 [PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
             ) | Should -Be 0
         }
-    
+
         It 'Streamed table lines, floating: OFF' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -HorizontalDash $Null -VerticalDash $Null 
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -HorizontalDash $Null -VerticalDash $Null
             ,$Actual | Differentiate @(
                 [PSCustomObject]@{'Information' = 'on the table'}
                 [PSCustomObject]@{'Information' = 'Name  | Value'}
@@ -834,15 +834,15 @@ Describe 'ConvertFrom-Table' {
             ) | Should -Be 0
         }
     }
-    
+
     Context 'Floating markdown table' {
-        
+
         BeforeAll {
             $Table = '
 
                 Information
                 on the table
-                
+
                 |-------|-------|
                 | Name  | Value |
                 |-------|-------|
@@ -852,7 +852,7 @@ Describe 'ConvertFrom-Table' {
 
             '
         }
-        
+
         It 'Raw table, floating: AUTO' {
             $Actual = ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate @(
@@ -868,7 +868,7 @@ Describe 'ConvertFrom-Table' {
                 [PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
             ) | Should -Be 0
         }
-    
+
         It 'Raw table, floating: forced ON with -VerticalDash' {
             $Actual = ConvertFrom-SourceTable $Table -VerticalDash '|'
             ,$Actual | Differentiate @(
@@ -876,7 +876,7 @@ Describe 'ConvertFrom-Table' {
                 [PSCustomObject]@{'Name' = 'White'; 'Value' = 255}
             ) | Should -Be 0
         }
-    
+
         It 'Raw table, floating: OFF' {
             $Actual = ConvertFrom-SourceTable $Table -HorizontalDash $Null -VerticalDash $Null
             ,$Actual | Differentiate @(
@@ -889,7 +889,7 @@ Describe 'ConvertFrom-Table' {
                 [pscustomobject]@{'Information' = '|-------|-------|'}
             ) | Should -Be 0
         }
-    
+
         It 'Streamed table lines, floating: AUTO' {
             $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
             ,$Actual | Differentiate @(
@@ -910,7 +910,7 @@ Describe 'ConvertFrom-Table' {
                 [pscustomobject]@{'Name' = 'White'; 'Value' = 255}
             ) | Should -Be 0
         }
-    
+
         It 'RStreamed table lines, floating: forced ON with -VerticalDash' {
             $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -VerticalDash '|'
             ,$Actual | Differentiate @(
@@ -918,9 +918,9 @@ Describe 'ConvertFrom-Table' {
                 [pscustomobject]@{'Name' = 'White'; 'Value' = 255}
             ) | Should -Be 0
         }
-    
+
         It 'Streamed table lines, floating: OFF' {
-            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -HorizontalDash $Null -VerticalDash $Null 
+            $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable -HorizontalDash $Null -VerticalDash $Null
             ,$Actual | Differentiate @(
                 [pscustomobject]@{'Information' = 'on the table'}
                 [pscustomobject]@{'Information' = '|-------|-------|'}
@@ -932,170 +932,170 @@ Describe 'ConvertFrom-Table' {
             ) | Should -Be 0
         }
     }
-    
+
     Context 'Alignment tests' {
 
         It 'Left - Center - Left' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1     C2   C3
                 Left Center Left
             '
-            
+
             $Actual.C1 | Should -Be 'Left'
             $Actual.C2 | Should -Be 'Center'
             $Actual.C3 | Should -Be 'Left'
         }
 
         It 'Left - Center - Left' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1     C2      C3
                 Left Center Right
             '
-            
+
             $Actual.C1 | Should -Be 'Left'
             $Actual.C2 | Should -Be 'Center'
             $Actual.C3 | Should -Be 'Right'
         }
 
         It 'Left - Center - Center' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1     C2     C3
                 Left Center Center
             '
-            
+
             $Actual.C1 | Should -Be 'Left'
             $Actual.C2 | Should -Be 'Center'
             $Actual.C3 | Should -Be 'Center'
         }
 
         It 'Right - Center - Left' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                    C1   C2   C3
                 Right Center Left
             '
-            
+
             $Actual.C1 | Should -Be 'Right'
             $Actual.C2 | Should -Be 'Center'
             $Actual.C3 | Should -Be 'Left'
         }
 
         It 'Right - Center - Right' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                    C1   C2      C3
                 Right Center Right
             '
-            
+
             $Actual.C1 | Should -Be 'Right'
             $Actual.C2 | Should -Be 'Center'
             $Actual.C3 | Should -Be 'Right'
         }
 
         It 'Right - Center - Center' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                    C1   C2     C3
                 Right Center Center
             '
-            
+
             $Actual.C1 | Should -Be 'Right'
             $Actual.C2 | Should -Be 'Center'
             $Actual.C3 | Should -Be 'Center'
         }
 
         It 'Center - Center - Left' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                   C1     C2   C3
                 Center Center Left
             '
-            
+
             $Actual.C1 | Should -Be 'Center'
             $Actual.C2 | Should -Be 'Center'
             $Actual.C3 | Should -Be 'Left'
         }
 
         It 'Center - Center - Right' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                   C1     C2      C3
                 Center Center Right
             '
-            
+
             $Actual.C1 | Should -Be 'Center'
             $Actual.C2 | Should -Be 'Center'
             $Actual.C3 | Should -Be 'Right'
         }
 
         It 'Center - Center - Center' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                   C1     C2     C3
                 Center Center Center
             '
-            
+
             $Actual.C1 | Should -Be 'Center'
             $Actual.C2 | Should -Be 'Center'
             $Actual.C3 | Should -Be 'Center'
         }
     }
-    
+
     Context 'Alignment challenges' {
 
         It 'Left aligned by (otherwise) data indent' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1   C2
                 --   --
                 1  2 1  2
             '
-            
+
             $Actual.C1 | Should -Be '1  2'
             $Actual.C2 | Should -Be '1  2'
         }
-        
+
         It 'Left aligned by extended ruler' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1    C2
                 ---   ---
                 11  2 11  2
             '
-            
+
             $Actual.C1 | Should -Be '11  2'
             $Actual.C2 | Should -Be '11  2'
         }
-        
+
         It 'Left aligned by indented ruler' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1   C2
                 -    -
                 11 2 11 2
             '
-            
+
             $Actual.C1 | Should -Be '11 2'
             $Actual.C2 | Should -Be '11 2'
         }
-        
+
         It 'Left aligned by extended data' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1    C2
                 --    --
                 111 2 111 2
             '
-            
+
             $Actual.C1 | Should -Be '111 2'
             $Actual.C2 | Should -Be '111 2'
         }
 
         It 'Left aligned (to be implemented)' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1   C2
                 --   --
@@ -1103,133 +1103,133 @@ Describe 'ConvertFrom-Table' {
             '
             $Actual.C1 | Should -Be '11 2'
             $Actual.C2 | Should -Be '11 2'
-            
+
         }
 
         It 'Right aligned by (otherwise) data indent' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                   C1   C2
                   --   --
                 1  2 1  2
             '
-            
+
             $Actual.C1 | Should -Be '1  2'
             $Actual.C2 | Should -Be '1  2'
         }
-        
+
         It 'Right aligned by extended ruler' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                    C1    C2
                   ---   ---
                 1  22 1  22
             '
-            
+
             $Actual.C1 | Should -Be '1  22'
             $Actual.C2 | Should -Be '1  22'
         }
-        
+
         It 'Right aligned by indented ruler' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                   C1   C2
                    -    -
                 1 22 1 22
             '
-            
+
             $Actual.C1 | Should -Be '1 22'
             $Actual.C2 | Should -Be '1 22'
         }
-        
+
         It 'Right aligned by extended data' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                    C1    C2
                    --    --
                 1 222 1 222
             '
-            
+
             $Actual.C1 | Should -Be '1 222'
             $Actual.C2 | Should -Be '1 222'
         }
 
         It 'Right aligned (to be implemented)' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                   C1   C2
                   --   --
                 1 22 1 22
             '
-            
+
             $Actual.C1 | Should -Be '1 22 1'
             $Actual.C2 | Should -Be '22'
-            
+
         }
 
         It 'Mixed alignment (determind by spaces)' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                   C1 C2
                   -- --
                 1  2 1  2
             '
-            
+
             $Actual.C1 | Should -Be '1  2'
             $Actual.C2 | Should -Be '1  2'
         }
 
         It 'Conflicting alignment' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1     C2
                 --     --
                 1  2 1  2
             '
-            
+
             $Actual.C1 | Should -Be '1  2 1'
             $Actual.C2 | Should -Be '2'
         }
 
         It 'Indefinable alignment' {
-            
+
             $Actual = ConvertFrom-SourceTable '
                 C1     C2
                 --     --
                 11 2 1 22
             '
-            
+
             $Actual.C1 | Should -Be '11 2 1'
             $Actual.C2 | Should -Be '22'
         }
 
         It 'Fixing indefinable alignment with ruler parameter' {
-            
+
 $Actual = ConvertFrom-SourceTable -Ruler '    ---- ----' '
     C1     C2
     --     --
     11 2 1 22
 '
-            
+
             $Actual.C1 | Should -Be '11 2'
             $Actual.C2 | Should -Be '1 22'
         }
-        
+
         It 'Fixing headerless indefinable alignment with header and ruler parameter' {
-            
+
 $Actual = ConvertFrom-SourceTable -Header '    C1     C2' -Ruler '    ---- ----' '
     11 2 1 22
 '
-            
+
             $Actual.C1 | Should -Be '11 2'
             $Actual.C2 | Should -Be '1 22'
         }
     }
 
     Context 'Header and ruler challenges' {
-    
+
         It 'Source table without ruler' {
-        
+
             $Actual = ConvertFrom-SourceTable '
                 Name Value
                 A        1
@@ -1238,9 +1238,9 @@ $Actual = ConvertFrom-SourceTable -Header '    C1     C2' -Ruler '    ---- ----'
             $Actual[0].Name | Should -Be "A"; $Actual[0].Value | Should -Be 1
             $Actual[1].Name | Should -Be "B"; $Actual[1].Value | Should -Be 2
         }
-    
+
         It 'Source table with space in header name' {
-        
+
             $Actual = ConvertFrom-SourceTable '
                 Name Value
                 ----------
@@ -1250,9 +1250,9 @@ $Actual = ConvertFrom-SourceTable -Header '    C1     C2' -Ruler '    ---- ----'
             $Actual[0].'Name Value' | Should -Be 'A        1'
             $Actual[1].'Name Value' | Should -Be 'B        2'
         }
-    
+
         It 'Source table with assigned ruler' {
-        
+
 $Actual = ConvertFrom-SourceTable -Ruler '    ----------' '
     Name Value
     A        1
@@ -1261,9 +1261,9 @@ $Actual = ConvertFrom-SourceTable -Ruler '    ----------' '
             $Actual[0].'Name Value' | Should -Be 'A        1'
             $Actual[1].'Name Value' | Should -Be 'B        2'
         }
-    
+
         It 'Source table with assigned header' {
-        
+
 $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
     A        1
     B        2
@@ -1271,9 +1271,9 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
             $Actual[0].Name | Should -Be "A"; $Actual[0].Value | Should -Be 1
             $Actual[1].Name | Should -Be "B"; $Actual[1].Value | Should -Be 2
         }
-        
+
         It 'Markdown table without ruler' {
-    
+
             $Actual = ConvertFrom-SourceTable '
                 |------------|
                 | Name Value |
@@ -1288,7 +1288,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
     }
 
     Context 'Single column source table' {
-    
+
         BeforeAll {
             $RGB = @(
                 [pscustomobject]@{'Color' = 'Red'},
@@ -1296,9 +1296,9 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
                 [pscustomobject]@{'Color' = 'Yellow'}
             )
         }
-    
+
         It 'Left aligned' {
-        
+
             $Actual = ConvertFrom-SourceTable '
                 Color
                 -----
@@ -1310,7 +1310,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
         }
 
         It 'Right aligned' {
-        
+
             $Actual = ConvertFrom-SourceTable -Parse '
                    Color
                    -----
@@ -1322,24 +1322,24 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
         }
 
         It 'Blank lines at the top and bottom' {
-        
+
             $Actual = ConvertFrom-SourceTable '
-            
-            
+
+
                 Color
                 -----
                 Red
                 Green
                 Yellow
-            
-            
+
+
             '
             ,$Actual | Differentiate $RGB | Should -Be 0
         }
     }
-    
+
     Context 'Normal single column mark down table' {
-    
+
         BeforeAll {
             $RGB = @(
                 [pscustomobject]@{'Color' = 'Red'},
@@ -1349,7 +1349,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
         }
 
         It 'Left aligned' {
-        
+
             $Actual = ConvertFrom-SourceTable '
                 |--------|
                 | Color  |
@@ -1363,7 +1363,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
         }
 
         It 'Right aligned' {
-        
+
             $Actual = ConvertFrom-SourceTable -Parse '
                 |----------|
                 |    Color |
@@ -1378,7 +1378,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
     }
 
     Context 'Narrow single column mark down table' {
-    
+
         BeforeAll {
             $RGB = @(
                 [pscustomobject]@{'Color' = 'Red'},
@@ -1388,7 +1388,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
         }
 
         It 'Left aligned' {
-        
+
             $Actual = ConvertFrom-SourceTable '
                 |------|
                 |Color |
@@ -1402,7 +1402,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
         }
 
         It 'Right aligned' {
-        
+
             $Actual = ConvertFrom-SourceTable -Parse '
                 |--------|
                 |   Color|
@@ -1428,7 +1428,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
     }
 
     Context 'Simple table with embedded seperators' {
-    
+
         BeforeAll {
             $Table = '
                 Department  Name    Country
@@ -1442,7 +1442,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
             '
             $Object = $EmbeddedSeperators
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
@@ -1460,7 +1460,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
     }
 
     Context 'Markdown table with embedded seperators' {
-    
+
         BeforeAll {
             $Table = '
                 |------------|-------|---------|
@@ -1494,7 +1494,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
     }
 
     Context 'SAP Table' {
-    
+
         BeforeAll {
             $Table = '
                 ---------------------------------------
@@ -1519,7 +1519,7 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
                 [pscustomobject]@{'Geldig v.' = '01.01.2009'; 'Geldig tot' = '31.01.2010'; 'Inv.waarde' = '75.061,0000000'}
             )
         }
-        
+
         It 'Raw table as argument' {
             $Actual = ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
@@ -1537,9 +1537,9 @@ $Actual = ConvertFrom-SourceTable -Header '    Name Value' '
     }
 
     Context 'Stackoverflow questions' {
-    
+
         It 'Split string on arbitrary-length substrings (Powershell)' {			# https://stackoverflow.com/a/55752375/1701026
-        
+
             $Table = @'
 @SUB-SECTOR: sec_C   SECTOR: reft
 #
@@ -1553,7 +1553,7 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
 '@  -Split '[\r\n]+' | ForEach-Object {$_ -Replace '^#', ' '}
 
             $Actual = $Table | ConvertFrom-SourceTable -HDash '-'
-            
+
             ,$Actual | Differentiate @(
                 [pscustomobject]@{'PlanetName' = 'Lemente'; 'Loc.' = '1907'; 'UPP Code' = 'B897563-B'; 'B' = ''; 'Notes' = 'Ag Ni'; 'Z' = ''; 'PBG' = '824'; 'Al' = 'Na'; 'LRX' = ''; 'X' = ''},
                 [pscustomobject]@{'PlanetName' = 'Zamoran'; 'Loc.' = '2108'; 'UPP Code' = 'B674675-A'; 'B' = 'Q'; 'Notes' = 'Ag Ni'; 'Z' = ''; 'PBG' = '904'; 'Al' = 'Dr'; 'LRX' = ''; 'X' = ''}
@@ -1563,7 +1563,7 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
         It 'Getting an average of each column from CSV' {					# https://stackoverflow.com/q/57087760/1701026
 
             $Table = '
-                timestamp   streams TRP A   B   C   D 
+                timestamp   streams TRP A   B   C   D
                 6/4/2019    6775    305 56  229 132 764
                 6/4/2019    6910    316 28  356 118 134
                 6/4/2019    6749    316 54  218 206 144
@@ -1575,7 +1575,7 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
                 6/6/2019    5181    290 32  788 129 745
                 6/6/2019    5244    328 44  540 403 989
             '
-            
+
             $Object = @(
                 [pscustomobject]@{'timestamp' = '6/4/2019'; 'streams' = '6775'; 'TRP' = '305'; 'A' = '56'; 'B' = '229'; 'C' = '132'; 'D' = '764'},
                 [pscustomobject]@{'timestamp' = '6/4/2019'; 'streams' = '6910'; 'TRP' = '316'; 'A' = '28'; 'B' = '356'; 'C' = '118'; 'D' = '134'},
@@ -1588,10 +1588,10 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
                 [pscustomobject]@{'timestamp' = '6/6/2019'; 'streams' = '5181'; 'TRP' = '290'; 'A' = '32'; 'B' = '788'; 'C' = '129'; 'D' = '745'},
                 [pscustomobject]@{'timestamp' = '6/6/2019'; 'streams' = '5244'; 'TRP' = '328'; 'A' = '44'; 'B' = '540'; 'C' = '403'; 'D' = '989'}
             )
-            
+
             $Actual =  ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
-            
+
             $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
             ,$Actual | Differentiate $Object | Should -Be 0
 
@@ -1605,7 +1605,7 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
                 | 6/5/2019  | 6894 | 3046 |  4 | 2284 | 1556 |  624 |  0 |  0 |
                 | 1/1/2021  | 1111 | 2222 |  3 | 4444 | 5555 |  666 |  7 |  8 |
             '
-            
+
             $Object = @(
                 [pscustomobject]@{'date' = '6/4/2019'; 'abc' = 6775; 'A' = 3059; 'B' = 4; 'C' = 2292; 'D' = 1328; 'E' = 764; 'F' = 0; 'G' = 0}
                 [pscustomobject]@{'date' = '6/4/2019'; 'abc' = 6910; 'A' = 3167; 'B' = 28; 'C' = 3568; 'D' = 1180; 'E' = 1348; 'F' = 0; 'G' = 0}
@@ -1615,10 +1615,10 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
                 [pscustomobject]@{'date' = '6/5/2019'; 'abc' = 6894; 'A' = 3046; 'B' = 4; 'C' = 2284; 'D' = 1556; 'E' = 624; 'F' = 0; 'G' = 0}
                 [pscustomobject]@{'date' = '1/1/2021'; 'abc' = 1111; 'A' = 2222; 'B' = 3; 'C' = 4444; 'D' = 5555; 'E' = 666; 'F' = 7; 'G' = 8}
             )
-            
+
             $Actual =  ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
-            
+
             $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
             ,$Actual | Differentiate $Object | Should -Be 0
 
@@ -1632,7 +1632,7 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
                 6/5/2019 |6894 |  3046 |  4  | 2284 | 1556 | 624  |  0 |  0  |
                 1/1/2021 |1111 |  2222 |  3  | 4444 | 5555 | 666  |  7 |  8  |
                 '
-            
+
             $Object = @(
                 [pscustomobject]@{'timestamp' = '6/4/2019'; 'abc' = '6775'; 'A' = '3059'; 'B' = '4'; 'C' = '2292'; 'D' = '1328'; 'E' = '764'; 'F' = '0'; 'G' = '0'}
                 [pscustomobject]@{'timestamp' = '6/4/2019'; 'abc' = '6910'; 'A' = '3167'; 'B' = '28'; 'C' = '3568'; 'D' = '1180'; 'E' = '1348'; 'F' = '0'; 'G' = '0'}
@@ -1642,15 +1642,15 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
                 [pscustomobject]@{'timestamp' = '6/5/2019'; 'abc' = '6894'; 'A' = '3046'; 'B' = '4'; 'C' = '2284'; 'D' = '1556'; 'E' = '624'; 'F' = '0'; 'G' = '0'}
                 [pscustomobject]@{'timestamp' = '1/1/2021'; 'abc' = '1111'; 'A' = '2222'; 'B' = '3'; 'C' = '4444'; 'D' = '5555'; 'E' = '666'; 'F' = '7'; 'G' = '8'}
             )
-            
+
             $Actual =  ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
-            
+
             $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
             ,$Actual | Differentiate $Object | Should -Be 0
 
             $Table = '
-                timestamp   streams TRP  A    B   C   D 
+                timestamp   streams TRP  A    B   C   D
                 6/4/2019       6775 305 56  229 132 764
                 6/4/2019       6910 316 28  356 118 134
                 6/4/2019       6749 316 54  218 206 144
@@ -1662,7 +1662,7 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
                 6/6/2019       5181 290 32  788 129 745
                 6/6/2019       5244 328 44  540 403 989
             '
-            
+
             $Object = @(
                 [pscustomobject]@{'timestamp' = '6/4/2019'; 'streams' = 6775; 'TRP' = '305'; 'A' = 56; 'B' = 229; 'C' = 132; 'D' = 764}
                 [pscustomobject]@{'timestamp' = '6/4/2019'; 'streams' = 6910; 'TRP' = '316'; 'A' = 28; 'B' = 356; 'C' = 118; 'D' = 134}
@@ -1675,10 +1675,10 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
                 [pscustomobject]@{'timestamp' = '6/6/2019'; 'streams' = 5181; 'TRP' = '290'; 'A' = 32; 'B' = 788; 'C' = 129; 'D' = 745}
                 [pscustomobject]@{'timestamp' = '6/6/2019'; 'streams' = 5244; 'TRP' = '328'; 'A' = 44; 'B' = 540; 'C' = 403; 'D' = 989}
             )
-            
+
             $Actual =  ConvertFrom-SourceTable $Table
             ,$Actual | Differentiate $Object | Should -Be 0
-            
+
             $Actual = ($Table -Split '[\r\n]+') | ConvertFrom-SourceTable
             ,$Actual | Differentiate $Object | Should -Be 0
 
@@ -1699,16 +1699,77 @@ Zamoran       2108 B674675-A  Q Ag Ni              904 Dr
             ) | Should -Be 0
 
         }
+
+        It 'Pull specific data from text files in PowerShell with search parameters' { # https://stackoverflow.com/q/79138278/1701026
+
+            $Text = @'
+*********************************************************************************************************
+ 9/5/2021 7:42:16 AM    Target: AP01 (VC)
+*********************************************************************************************************
+WIFI AP BSS Table
+------------------
+bss                ess              port  ip            band/ht-mode/bandwidth  ch/EIRP/max-EIRP  type  cur-cl  ap name   in-t(s)  tot-t            flags
+---                ---              ----  --            ----------------------  ----------------  ----  ------  -------   -------  -----            -----
+ab:cd:ef:gh:if:jk  trustedwifi      ?/?   A.b.c.d       2.4GHz/HT/20MHz         1/24.0/25.5       ap    0       AP01      0        43d:14h:48m:14s  K
+ab:cd:ef:gh:if:jk  secure           ?/?   A.b.c.d       2.4GHz/HT/20MHz         1/24.0/25.5       ap    0       AP01      0        43d:14h:47m:53s  -
+ab:cd:ef:gh:if:jk  guest            ?/?   A.b.c.d       2.4GHz/HT/20MHz         1/24.0/25.5       ap    0       AP01      0        22h:11m:43s      -
+ab:cd:ef:gh:if:jk  trustedwifi      ?/?   A.b.c.d       5GHz/VHT/40MHz          100+/18.0/30.0    ap    0       AP01      0        43d:14h:48m:15s  K
+ab:cd:ef:gh:if:jk  secure           ?/?   A.b.c.d       5GHz/VHT/40MHz          100+/18.0/30.0    ap    0       AP01      0        43d:14h:47m:54s  -
+ab:cd:ef:gh:if:jk  guest            ?/?   A.b.c.d       5GHz/VHT/40MHz          100+/18.0/30.0    ap    0       AP01      0        22h:11m:44s      -
+
+Channel followed by "*" indicates channel selected due to unsupported configured channel.
+"Spectrum" followed by "^" indicates Local Spectrum Override in effect.
+
+Num APs:6
+Num Associations:0
+
+Flags:       a = Airslice policy; A = Airslice app monitoring; c = MBO Cellular Data Capable BSS; d = Deferred Delete Pending; D = VLAN Discovered; E = Enhanced-open BSS without transition mode; I = Imminent VAP Down; K = 802.11K Enabled; m = Agile Multiband (MBO) BSS; M = WPA3-SAE mixed mode BSS; o = Enhanced-open transition mode open BSS; O = Enhanced-open BSS with transition mode; r = 802.11r Enabled; t = Broadcast TWT Enabled; T = Individual TWT Enabled; W = 802.11W Enabled; x = MBSSID Tx BSS; 3 = WPA3 BSS;
+
+
+*********************************************************************************************************
+  9/5/2021 7:42:18 AM    Target: AP02
+*********************************************************************************************************
+WIFI AP BSS Table
+------------------
+bss                ess              port  ip            band/ht-mode/bandwidth  ch/EIRP/max-EIRP  type  cur-cl  ap name   in-t(s)  tot-t            flags
+---                ---              ----  --            ----------------------  ----------------  ----  ------  -------   -------  -----            -----
+ab:cd:ef:gh:if:jk  trustedwifi      ?/?   A.b.c.d       2.4GHz/HT/20MHz         11/24.0/25.5      ap    0       AP02      0        43d:14h:47m:24s  K
+ab:cd:ef:gh:if:jl  secure           ?/?   A.b.c.d       2.4GHz/HT/20MHz         11/24.0/25.5      ap    0       AP02      0        43d:14h:47m:3s   -
+ab:cd:ef:gh:if:jm  guest            ?/?   A.b.c.d       2.4GHz/HT/20MHz         11/24.0/25.5      ap    0       AP02      0        22h:11m:43s      -
+ab:cd:ef:gh:if:j0  rustedwifi       ?/?   A.b.c.d       5GHz/VHT/40MHz          108+/18.0/30.0    ap    0       AP02      0        43d:14h:47m:24s  K
+ab:cd:ef:gh:if:jp  secure           ?/?   A.b.c.d       5GHz/VHT/40MHz          108+/18.0/30.0    ap    0       AP02      0        43d:14h:47m:4s   -
+ab:cd:ef:gh:if:jq  guest            ?/?   A.b.c.d       5GHz/VHT/40MHz          108+/18.0/30.0    ap    0       AP02      0        22h:11m:43s      -
+'@
+
+            $Actual = $Text -Split '\r?\n' | Select-String 'Mhz' | ConvertFrom-SourceTable -Header 'bss', 'ess', '', '', '', '', '', '', 'ap name'
+            $Expected = @(
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jk'; ess = 'trustedwifi'; 'ap name' = 'AP01' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jk'; ess = 'secure'; 'ap name' = 'AP01' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jk'; ess = 'guest'; 'ap name' = 'AP01' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jk'; ess = 'trustedwifi'; 'ap name' = 'AP01' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jk'; ess = 'secure'; 'ap name' = 'AP01' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jk'; ess = 'guest'; 'ap name' = 'AP01' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jk'; ess = 'trustedwifi'; 'ap name' = 'AP02' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jl'; ess = 'secure'; 'ap name' = 'AP02' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jm'; ess = 'guest'; 'ap name' = 'AP02' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:j0'; ess = 'rustedwifi'; 'ap name' = 'AP02' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jp'; ess = 'secure'; 'ap name' = 'AP02' }
+                [pscustomobject]@{ bss = 'ab:cd:ef:gh:if:jq'; ess = 'guest'; 'ap name' = 'AP02' }
+            )
+
+            ,$Actual | Differentiate $Expected | Should -Be 0
+        }
+
     }
-    
+
     Context 'Resolved bugs' {
-    
+
         BeforeAll {
             It 'Single width column at position 0' {
 
                 $Actual = ConvertFrom-SourceTable '
-A B    XY   ZY  
-- -    --   --  
+A B    XY   ZY
+- -    --   --
 1 val1 foo1 bar1
 2 val2 foo2 bar2
 3 val3 foo3 bar3
@@ -1724,7 +1785,7 @@ A B    XY   ZY
                     [pscustomobject]@{'A' = '5'; 'B' = 'val5'; 'XY' = 'foo5'; 'ZY' = 'bar5'},
                     [pscustomobject]@{'A' = '6'; 'B' = 'val6'; 'XY' = 'foo6'; 'ZY' = 'bar6'}
                 ) | Should -Be 0
-                
+
             }
 
             It 'Here table without ruler with spaces in header' {
@@ -1792,7 +1853,7 @@ A B    XY   ZY
                 [pscustomobject]@{'Age' = '{69, 40}'; 'Country' = '{England, Belgium}'; 'Department' = 'Sales'; 'Id' = '{3, 1}'; 'Name' = '{Cook, Aerts}'; 'ReportsTo' = '{1, 5}'},
                 [pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
             ) | Should -Be 0
-            
+
             $Actual = ConvertFrom-SourceTable '
                 Department  Id     Name             Country            Age      ReportsTo
 
@@ -1813,13 +1874,13 @@ A B    XY   ZY
 
             $Actual = ConvertFrom-SourceTable '
                 Department  Id     Name             Country            Age      ReportsTo
-                
+
                 ----------  --     ----             -------            ---      ---------
-                
+
                 Engineering {2, 4} {Bauer, Duval}   {Germany, France}  {31, 21} {4, 5}
-                
+
                 Sales       {3, 1} {Cook, Aerts}    {England, Belgium} {69, 40} {1, 5}
-                
+
                 Engineering {6, 4} {Fischer, Duval} {Germany, France}  {29, 21} {4, 5}
                 '
 
@@ -1829,36 +1890,36 @@ A B    XY   ZY
                 [pscustomobject]@{'Age' = '{29, 21}'; 'Country' = '{Germany, France}'; 'Department' = 'Engineering'; 'Id' = '{6, 4}'; 'Name' = '{Fischer, Duval}'; 'ReportsTo' = '{4, 5}'}
             ) | Should -Be 0
         }
-        
+
         It 'Connect (rulerless) single spaced headers where either column is empty' { # https://stackoverflow.com/q/59541667/1701026
-        
+
             $Actual = ConvertFrom-SourceTable '
                 NAME            READY   STATUS    RESTARTS   AGE     IP          NODE   NOMINATED NODE   READINESS GATES
                 me-pod-name     2/2     Running   0          6s      10.0.0.10   node1  <none>           <none>
                 me-pod-name-2   1/1     Running   0          6d18h   10.0.1.20   node2  <none>           <none>
                 me-pod-name-3   1/1     Running   0          11d     10.0.0.30   node3  <none>           <none>'
-                
-            
+
+
         }
-        
+
         It 'convert list output to table(object)' { # https://stackoverflow.com/a/60882963/1701026
-        
+
         BeforeAll {
                 $Table = '
 [ ID] Interval           Transfer     Bandwidth
-[  4]   0.00-1.00   sec  11.4 MBytes  95.4 Mbits/sec                  
-[  4]   1.00-2.00   sec  11.2 MBytes  94.2 Mbits/sec                  
-[  4]   2.00-3.00   sec  11.2 MBytes  94.3 Mbits/sec                  
-[  4]   3.00-4.00   sec  11.2 MBytes  94.5 Mbits/sec                  
-[  4]   4.00-5.00   sec  11.2 MBytes  94.2 Mbits/sec                  
-[  4]   5.00-6.00   sec  11.2 MBytes  94.4 Mbits/sec                  
-[  4]   6.00-7.00   sec  11.2 MBytes  94.4 Mbits/sec                  
-[  4]   7.00-8.00   sec  11.2 MBytes  94.3 Mbits/sec                  
-[  4]   8.00-9.00   sec  11.2 MBytes  94.2 Mbits/sec                  
+[  4]   0.00-1.00   sec  11.4 MBytes  95.4 Mbits/sec
+[  4]   1.00-2.00   sec  11.2 MBytes  94.2 Mbits/sec
+[  4]   2.00-3.00   sec  11.2 MBytes  94.3 Mbits/sec
+[  4]   3.00-4.00   sec  11.2 MBytes  94.5 Mbits/sec
+[  4]   4.00-5.00   sec  11.2 MBytes  94.2 Mbits/sec
+[  4]   5.00-6.00   sec  11.2 MBytes  94.4 Mbits/sec
+[  4]   6.00-7.00   sec  11.2 MBytes  94.4 Mbits/sec
+[  4]   7.00-8.00   sec  11.2 MBytes  94.3 Mbits/sec
+[  4]   8.00-9.00   sec  11.2 MBytes  94.2 Mbits/sec
 [  4]   9.00-10.00  sec  11.2 MBytes  94.5 Mbits/sec'
-            
+
                 $Actual = $Table | ConvertFrom-SourceTable -Omit '[]'
-            
+
                 ,$Actual | Differentiate @(
                     [pscustomobject]@{'ID' = '4'; 'Interval' = '0.00-1.00   sec'; 'Transfer' = '11.4 MBytes'; 'Bandwidth' = '95.4 Mbits/sec'},
                     [pscustomobject]@{'ID' = '4'; 'Interval' = '1.00-2.00   sec'; 'Transfer' = '11.2 MBytes'; 'Bandwidth' = '94.2 Mbits/sec'},
@@ -1873,9 +1934,9 @@ A B    XY   ZY
                 ) | Should -Be 0
             }
         }
-        
+
         It '#2 Losing certain columns' {
-        
+
             $Actual = ConvertFrom-SourceTable '
                 ID     Done       Have  ETA           Up    Down  Ratio  Status       Name
                    1   100%   17.34 MB  Unknown      0.0     0.0    0.0  Idle         BitComet Stable (build 1.69.7.8)
@@ -1904,6 +1965,7 @@ A B    XY   ZY
                 [pscustomobject]@{'Done' = '7%'; 'ID' = '4'; 'Have' = '353.4 MB'; 'ETA' = '1 hrs'; 'Up' = '0.0'; 'Down' = '2285.0'; 'Ratio' = '0.0'; 'Status' = 'Downloading'; 'Name' = '[Sakurato.sub][Kakushigoto][01-12 END][CHT][1080P]'}
             ) | Should -Be 0
         }
-        
+
     }
 }
+
