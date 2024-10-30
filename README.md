@@ -5,16 +5,16 @@ Converts a fixed column table to objects.
 
 ## Syntax
 
-```JavaScript
+```PowerShell
 ConvertFrom-SourceTable
-    [[-InputObject] <string[]>]
-    [[-Header] <string[]>]
-    [[-Ruler] <string>]
-    [[-HorizontalDash] <char>]
-    [[-VerticalDash] <char>]
-    [[-Junction] <char>]
-    [[-Anchor] <char>]
-    [[-Omit] <string>]
+    [-InputObject <String[]>]
+    [-Header <String[]>]
+    [-Ruler <String>]
+    [-HorizontalDash <Char> = '-']
+    [-VerticalDash <Char> = '|']
+    [-Junction <Char> = '+']
+    [-Anchor <Char> = ':']
+    [-Omit <String>]
     [-ParseRightAligned]
     [-Literal]
     [<CommonParameters>]
@@ -22,7 +22,7 @@ ConvertFrom-SourceTable
 
 ## Description
 
-The [ConvertFrom-SourceTable](#convertfrom-sourcetable) cmdlet creates objects from a fixed column
+The [`ConvertFrom-SourceTable`](https://github.com/iRon7/ConvertFrom-SourceTable) cmdlet creates objects from a fixed column
 source table possibly surrounded by horizontal and/or vertical rulers.
 
 **Definitions:**
@@ -41,6 +41,7 @@ the ruler of the outlined column.
 ## Examples
 
 ### Example 1: Restore objects from a Format-Table output
+
 
 The following loads the file properties from general PowerShell output table:
 
@@ -61,6 +62,7 @@ d----l       11/16/2018   8:30 PM                Archive
 
 ### Example 2: Convert from a markdown table
 
+
 The following command loads a list of employee objects from a markdown table:
 
 ```PowerShell
@@ -76,6 +78,7 @@ $Employees = ConvertFrom-SourceTable '
 ```
 
 ### Example 3: Parse right aligned data
+
 
 In the following example each item in the (hexadecimal) `Value` column will be parsed
 to integer value and each item in the `RGB` column to an array with three values.
@@ -110,8 +113,9 @@ Red  16711680 {255, 0, 0}
 
 ### Example 4: Custom column types
 
+
 In the following example each item in the first column is casted to a `version` object
-and each item in the second column to a `datetime` object.  
+and each item in the second column to a `DateTime` object.  
 Notice that the type name is used as a property name in case column name is omitted.
 
 ```PowerShell
@@ -127,25 +131,26 @@ $ChangeLog = ConvertFrom-SourceTable -Parse '
 0.0.25    2018-05-27     Ronald Bode Resolved error due to blank top lines'
 ```
 
-## Parameter
+## Parameters
 
 ### <a id="-inputobject">**`-InputObject <String[]>`**</a>
 
 Specifies the source table strings to be converted to objects.
 Enter a variable that contains the source table strings or type a
 command or expression that gets the source table strings.
-You might also pipe the source table strings to [ConvertFrom-SourceTable](#convertfrom-sourcetable).
+You might also pipe the source table strings to [`ConvertFrom-SourceTable`](https://github.com/iRon7/ConvertFrom-SourceTable).
 
 Note that streamed table rows are intermediately processed and
 released for the next cmdlet. In this mode, there is a higher
 possibility that floating tables or column data cannot be determined
 to be part of a specific column (as there is no overview of the table
 data that follows). To resolve this, provide all rows in once or use
-one of the following [`-Header`](#-header) and/or [`-Ruler`](#-ruler) parameters.
+one of the following [-Header](#-header) and/or [-Ruler](#-ruler) parameters.
 
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.String[]">String[]</a></td></tr>
-<tr><td>Position:</td><td>0</td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
+<tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
 <tr><td>Accept wildcard characters:</td><td>False</td></tr>
@@ -163,9 +168,14 @@ If the header contains multiple strings, each string will be used to
 define the property names of each object. In this case, column alignment
 is based on the rest of the data and possible ruler.
 
+[!TIP]
+To skip a column, set the header name of the concerned column index to
+an empty string (or `$Null`).
+
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.String[]">String[]</a></td></tr>
-<tr><td>Position:</td><td>1</td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
+<tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
 <tr><td>Accept wildcard characters:</td><td>False</td></tr>
@@ -179,7 +189,8 @@ margins are indefinable.
 
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.String">String</a></td></tr>
-<tr><td>Position:</td><td>2</td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
+<tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
 <tr><td>Accept wildcard characters:</td><td>False</td></tr>
@@ -197,12 +208,12 @@ header line.
 If `-HorizontalDash` explicitly defined, all (streamed) lines will be
 searched for a matching ruler.
 If `-HorizontalDash` is set to `$Null`, the first data line is presumed
-the header line (unless the [`-VerticalDash`](#-verticaldash) parameter is set).
+the header line (unless the [-VerticalDash](#-verticaldash) parameter is set).
 
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Char">Char</a></td></tr>
-<tr><td>Aliases:</td><td>HDash</td></tr>
-<tr><td>Position:</td><td>3</td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
+<tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td><code>'-'</code></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
 <tr><td>Accept wildcard characters:</td><td>False</td></tr>
@@ -218,12 +229,12 @@ line is presumed the header line.
 If `-VerticalDash` explicitly defined, all (streamed) lines will be
 searched for a header with a vertical dash character.
 If `-VerticalDash` is set to `$Null`, the first data line is presumed
-the header line (unless the [`-HorizontalDash`](#-horizontaldash) parameter is set).
+the header line (unless the [-HorizontalDash](#-horizontaldash) parameter is set).
 
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Char">Char</a></td></tr>
-<tr><td>Aliases:</td><td>VDash</td></tr>
-<tr><td>Position:</td><td>4</td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
+<tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td><code>'|'</code></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
 <tr><td>Accept wildcard characters:</td><td>False</td></tr>
@@ -236,7 +247,8 @@ the junction between the horizontal ruler and vertical ruler.
 
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Char">Char</a></td></tr>
-<tr><td>Position:</td><td>5</td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
+<tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td><code>'+'</code></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
 <tr><td>Accept wildcard characters:</td><td>False</td></tr>
@@ -251,7 +263,8 @@ values will be parsed.
 
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Char">Char</a></td></tr>
-<tr><td>Position:</td><td>6</td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
+<tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td><code>':'</code></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
 <tr><td>Accept wildcard characters:</td><td>False</td></tr>
@@ -264,7 +277,8 @@ character will be replaced with a space.
 
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.String">String</a></td></tr>
-<tr><td>Position:</td><td>7</td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
+<tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
 <tr><td>Accept wildcard characters:</td><td>False</td></tr>
@@ -295,6 +309,7 @@ from a table, verify that the data is safe to be parsed before running it.
 
 <table>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Management.Automation.SwitchParameter">SwitchParameter</a></td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
 <tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
@@ -304,8 +319,8 @@ from a table, verify that the data is safe to be parsed before running it.
 ### <a id="-literal">**`-Literal`**</a>
 
 <table>
-<tr><td>Accepted script condition:</td><td><code>Throw [System.Management.Automation.ValidationMetadataException]'The -Literal parameter is depreciated and enabled by default, use -ParseRightAligned to disable.'</code></td></tr>
 <tr><td>Type:</td><td><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Management.Automation.SwitchParameter">SwitchParameter</a></td></tr>
+<tr><td>Mandatory:</td><td>False</td></tr>
 <tr><td>Position:</td><td>Named</td></tr>
 <tr><td>Default value:</td><td></td></tr>
 <tr><td>Accept pipeline input:</td><td>False</td></tr>
@@ -315,3 +330,5 @@ from a table, verify that the data is safe to be parsed before running it.
 ## Related Links
 
 * https://github.com/iRon7/ConvertFrom-SourceTable
+
+[comment]: <> (Created with Get-MarkdownHelp: Install-Script -Name Get-MarkdownHelp)
