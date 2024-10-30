@@ -60,9 +60,9 @@
         define the property names of each object. In this case, column alignment
         is based on the rest of the data and possible ruler.
 
-        [!TIP]
-        To skip a column, set the header name of the concerned column index to
-        an empty string (or `$Null`).
+        > [!TIP]
+        > To skip a column, set the header name of the concerned column index to
+        > an empty string (or `$Null`).
 
     .PARAMETER Ruler
         A string that replaces any (horizontal) ruler in the input table which
